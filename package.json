@@ -1,0 +1,20 @@
+{
+  "name": "stacktrace-gps",
+  "description": "JS Object representation of a stack frame",
+  "author": "Eric Wendelin <me@eriwen.com> (http://eriwen.com)",
+  "version": "0.1.0",
+  "keywords": ["stacktrace", "error"],
+  "homepage": "http://www.stacktracejs.com",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stacktracejs/stacktrace-gps.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
+  },
+  "licenses": [{
+    "type": "Public Domain",
+    "url": "https://github.com/stacktracejs/stacktrace-gps/blob/master/LICENSE"
+  }],
+  "main": "./stacktrace-gps.js"
+}

@@ -1,0 +1,33 @@
+{
+    "name": "stacktrace-gps",
+    "version": "0.1.0",
+    "main": "./stacktrace-gps.js",
+    "homepage": "https://github.com/stacktracejs/stacktrace-gps.js",
+    "authors": [
+        "Eric Wendelin <me@eriwen.com>"
+    ],
+    "description": "JS Object representation of a stack frame",
+    "devDependencies": {
+        "jasmine": "~1.3.1",
+        "jasmine-jstd-adapter": "~1.1.2"
+    },
+    "moduleType": [
+        "amd",
+        "globals",
+        "node"
+    ],
+    "keywords": [
+        "stacktrace",
+        "stackframe",
+        "stack-trace",
+        "backtrace",
+        "cross-browser",
+        "framework-agnostic",
+        "error"
+    ],
+    "license": "Public Domain",
+    "ignore": [
+        "**/.*",
+        "bower_components"
+    ]
+}

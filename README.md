@@ -1,4 +1,8 @@
-stackframe-enhancer
+stacktrace-gps
 ===================
 
-Guess "anonymous" function names and arguments for StackFrame objects
+## What it is
+
+## How to use it
+
+## How to setup dev env
