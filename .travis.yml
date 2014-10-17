@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+- '0.10'
+script: make test-ci
+install:
+- npm install
+- npm install bower -g
+- bower install
+addons:
+  sauce_connect: true
+env:
+  global:
+  - secure: DoWCnMhp4u979THwmfUBKv6TmPFnJ0srnZ36Tm7X+ASh3ozbg80auN9hNaojJ5EaubJX98K00fmmizR8CJ7yyCzHSpDP4yK6yF8OIpfFOgm6Ex7EEemfLLxDGEk5TtyrcwJLoS8KieEEoIvGzsFQP5yvS2/+jDpcO3Y4YGEo6Gc=
+  - secure: K5y0371bw7iB4oKH4xxolqTiLhHv+ArJSHKs1MlUNfQkV9o/WTB5LT+k0n0B6qzH5ICc5TiIw5XijEO5+5FvWouLyIIfaW9vvKwR0r21naeB44tFN5l5u+c/sIm0CWJ4E+om2B/w1oGLNhbkQF4x3/vtC38cApT6tUPgwD7FcZM=

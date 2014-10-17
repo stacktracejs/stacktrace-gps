@@ -1,5 +1,7 @@
+/* global ActiveXObject:false */
 (function (root, factory) {
     'use strict';
+    // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
     if (typeof define === 'function' && define.amd) {
         define([], factory);
     } else if (typeof exports === 'object') {
@@ -11,14 +13,57 @@
     'use strict';
 
     /**
+     * Make a X-Domain request to url and callback.
+     *
+     * @param url [String]
+     * @param callback [Function] to callback on completion
+     * @param errback [Function] to callback on error
+     */
+    function _xdr(url, callback, errback) {
+        var req = _createXMLHTTPObject();
+
+        if (!req) {
+            errback(new Error('X-Domain request failed because no form of XHR is supported'));
+        }
+
+        req.open('get', url);
+        req.onerror = errback;
+
+        if (typeof req.onreadystatechange === 'function') { // XMLHttpRequest and ActiveXObject
+            req.onreadystatechange = function onreadystatechange() {
+                if (req.readyState === 4) {
+                    if (req.status >= 200 && req.status < 400) {
+                        callback(req.responseText);
+                    } else {
+                        errback(new Error('XD XHR returned non-OK status'));
+                    }
+                }
+            };
+            req.send();
+        } else if (typeof req.onload === 'function') { // XDomainRequest
+            req.onload = function onload() {
+                callback(req.responseText);
+            };
+
+            // Avoid bug with concurrent requests in XDomainRequest API
+            setTimeout(req.send, 0);
+        } else {
+            errback(new Error('X-Domain request failed because unknown XHR object was provided'));
+        }
+    }
+
+    /**
      * Create XHR or equivalent object for this environment.
      * @returns XMLHttpRequest or ActiveXObject
      * @private
      */
     function _createXMLHTTPObject() {
-        var xmlhttp, XMLHttpFactories = [
+        var xmlhttp;
+        var XMLHttpFactories = [
             function () {
                 return new XMLHttpRequest();
+            }, function () {
+                return new XDomainRequest();
             }, function () {
                 return new ActiveXObject('Msxml2.XMLHTTP');
             }, function () {
@@ -31,58 +76,14 @@
             try {
                 xmlhttp = XMLHttpFactories[i]();
                 // Use memoization to cache the factory
-                _createXMLHTTPObject = XMLHttpFactories[i];
+//                _createXMLHTTPObject = XMLHttpFactories[i];
                 return xmlhttp;
             } catch (e) {
             }
         }
     }
 
-    /**
-     * Given a URL, GET it's contents and return.
-     * @param url [String]
-     * @returns [String] Content from URL
-     * @private
-     */
-    function _ajax(url) {
-        var req = _createXMLHTTPObject();
-        if (req) {
-            try {
-                req.open('GET', url, false);
-                //req.overrideMimeType('text/plain');
-                //req.overrideMimeType('text/javascript');
-                req.send(null);
-                //return req.status == 200 ? req.responseText : '';
-                return req.responseText;
-            } catch (e) {
-            }
-        }
-        return '';
-    }
-
-    /**
-     * Get source code from given URL if within same domain.
-     * @param url [String] JS source URL
-     * @param gps reference to StackTraceGPS instance
-     * @return Array[String] of source code lines
-     */
-    function _getSource(url, gps) {
-        if (typeof url !== 'string') {
-            throw new TypeError('Given URL is not a String');
-        }
-        if (!(url in gps.sourceCache) &&
-                typeof location !== 'undefined' &&
-                url.indexOf(location.hostname) !== -1) {
-            gps.sourceCache[url] = _ajax(url).split('\n');
-        }
-        return gps.sourceCache[url];
-    }
-
     function _findFunctionName(source, lineNumber, columnNumber) {
-        if (typeof lineNumber !== 'number' || lineNumber % 1 !== 0 || lineNumber < 1) {
-            throw new TypeError('Given line number must be a positive integer');
-        }
-
         // function {name}({args}) m[1]=name m[2]=args
         var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
         // {name} = function ({args}) TODO args capture
@@ -125,14 +126,36 @@
 
         /**
          * Given location information for a Function definition, return the function name.
-         * @param location [String] URL/path to GET
+         *
+         * @param location [String] URL to GET
          * @param lineNumber [Number]
          * @param columnNumber (Optional) [Number]
          * @returns String function name or undefined (which allows other enhancers a shot)
          */
         this.findFunctionName = function findFunctionName(location, lineNumber, columnNumber) {
-            var source = _getSource(location, this);
-            return _findFunctionName(source, Number(lineNumber), Number(columnNumber || 0));
+            if (typeof location !== 'string') {
+                throw new TypeError('Given URL is not a String');
+            } else if (typeof lineNumber !== 'number' || lineNumber % 1 !== 0 || lineNumber < 1) {
+                throw new TypeError('Given line number must be a positive integer');
+            }
+
+            function callback(cache) {
+                return function(source) {
+                    cache[location] = source;
+                    return _findFunctionName(cache[location], lineNumber, columnNumber || 0);
+                };
+            }
+
+            function errback(err) {
+                throw err;
+            }
+
+            if (!this.sourceCache[location]) {
+                return _xdr(location, callback(this.sourceCache), errback);
+            } else {
+                // FIXME: duplication
+                return _findFunctionName(this.sourceCache[location], lineNumber, columnNumber || 0);
+            }
         };
     };
 }));

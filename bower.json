@@ -2,15 +2,11 @@
     "name": "stacktrace-gps",
     "version": "0.1.0",
     "main": "./stacktrace-gps.js",
-    "homepage": "https://github.com/stacktracejs/stacktrace-gps.js",
+    "homepage": "https://github.com/stacktracejs/stacktrace-gps",
     "authors": [
-        "Eric Wendelin <me@eriwen.com>"
+        "Eric Wendelin <me@eriwen.com> (http://www.eriwen.com)"
     ],
-    "description": "JS Object representation of a stack frame",
-    "devDependencies": {
-        "jasmine": "~1.3.1",
-        "jasmine-jstd-adapter": "~1.1.2"
-    },
+    "description": "Turns partial code location into precise code location",
     "moduleType": [
         "amd",
         "globals",
@@ -22,11 +18,13 @@
         "backtrace",
         "cross-browser",
         "framework-agnostic",
-        "error"
+        "error",
+        "debugger"
     ],
     "license": "Public Domain",
     "ignore": [
         "**/.*",
-        "bower_components"
+        "node_modules",
+        "spec"
     ]
 }

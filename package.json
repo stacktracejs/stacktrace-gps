@@ -1,20 +1,46 @@
 {
-  "name": "stacktrace-gps",
-  "description": "JS Object representation of a stack frame",
-  "author": "Eric Wendelin <me@eriwen.com> (http://eriwen.com)",
-  "version": "0.1.0",
-  "keywords": ["stacktrace", "error"],
-  "homepage": "http://www.stacktracejs.com",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/stacktracejs/stacktrace-gps.git"
-  },
-  "bugs": {
-    "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
-  },
-  "licenses": [{
-    "type": "Public Domain",
-    "url": "https://github.com/stacktracejs/stacktrace-gps/blob/master/LICENSE"
-  }],
-  "main": "./stacktrace-gps.js"
+    "name": "stacktrace-gps",
+    "description": "Turns partial code location into precise code location",
+    "maintainers": [
+        "Eric Wendelin <me@eriwen.com> (http://www.eriwen.com)",
+        "Victor Homyakov (https://github.com/victor-homyakov)"
+    ],
+    "version": "0.1.0",
+    "keywords": [
+        "stacktrace",
+        "error",
+        "debugger"
+    ],
+    "homepage": "http://www.stacktracejs.com",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/stacktracejs/stacktrace-gps.git"
+    },
+    "devDependencies": {
+        "colors": "~1.0.3",
+        "coveralls": "^2.11.2",
+        "jasmine-node": "~1.14",
+        "jshint": "^2.5.6",
+        "karma": "~0.12",
+        "karma-chrome-launcher": "^0.1.5",
+        "karma-coverage": "^0.2.6",
+        "karma-firefox-launcher": "^0.1.3",
+        "karma-ie-launcher": "^0.1.5",
+        "karma-jasmine": "^0.1.5",
+        "karma-opera-launcher": "^0.1.0",
+        "karma-phantomjs-launcher": "^0.1.4",
+        "karma-safari-launcher": "^0.1.1",
+        "karma-sauce-launcher": "^0.2.10"
+    },
+    "bugs": {
+        "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
+    },
+    "licenses": [{
+        "type": "Public Domain",
+        "url": "https://github.com/stacktracejs/stacktrace-gps/blob/master/LICENSE"
+    }],
+    "main": "./stacktrace-gps.js",
+    "scripts": {
+        "test": "make test"
+    }
 }
