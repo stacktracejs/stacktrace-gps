@@ -1,4 +1,5 @@
 module.exports = function (config) {
+    'use strict';
     if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
         console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.');
         process.exit(1);
@@ -6,21 +7,21 @@ module.exports = function (config) {
 
     // Check out https://saucelabs.com/platforms for all browser/platform combos
     var customLaunchers = {
-        sl_chrome: {
+        slChrome: {
             base: 'SauceLabs',
             browserName: 'chrome'
         },
-        sl_firefox: {
+        slFirefox: {
             base: 'SauceLabs',
             browserName: 'firefox'
         },
-        sl_ie_11: {
+        slIE11: {
             base: 'SauceLabs',
             browserName: 'internet explorer',
             platform: 'Windows 8.1',
             version: '11'
         },
-        sl_ie_9: {
+        slIE9: {
             base: 'SauceLabs',
             browserName: 'internet explorer',
             platform: 'Windows 7',
@@ -30,8 +31,9 @@ module.exports = function (config) {
 
     config.set({
         basePath: '',
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'sinon'],
         files: [
+            'node_modules/es6-promise/dist/es6-promise.js',
             'stacktrace-gps.js',
             'spec/*-spec.js'
         ],

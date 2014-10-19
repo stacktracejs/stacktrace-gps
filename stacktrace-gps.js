@@ -1,16 +1,18 @@
-/* global ActiveXObject:false */
+/* global ActiveXObject:false, E */
 (function (root, factory) {
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
     if (typeof define === 'function' && define.amd) {
-        define([], factory);
+        define(['es6-promise'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory();
+        module.exports = factory(require('es6-promise'));
     } else {
-        root.StackTraceGPS = factory();
+        root.StackTraceGPS = factory(root.ES6Promise);
     }
-}(this, function () {
+}(this, function (ES6Promise) {
     'use strict';
+    ES6Promise.polyfill();
+    var Promise = ES6Promise.Promise;
 
     /**
      * Make a X-Domain request to url and callback.
@@ -29,32 +31,43 @@
         req.open('get', url);
         req.onerror = errback;
 
-        if (typeof req.onreadystatechange === 'function') { // XMLHttpRequest and ActiveXObject
+        if (typeof XMLHttpRequest === 'function' || typeof ActiveXObject === 'function') {
             req.onreadystatechange = function onreadystatechange() {
                 if (req.readyState === 4) {
                     if (req.status >= 200 && req.status < 400) {
-                        callback(req.responseText);
+                        return callback(req.responseText);
                     } else {
                         errback(new Error('XD XHR returned non-OK status'));
                     }
                 }
             };
             req.send();
-        } else if (typeof req.onload === 'function') { // XDomainRequest
+        } else {
             req.onload = function onload() {
                 callback(req.responseText);
             };
 
             // Avoid bug with concurrent requests in XDomainRequest API
             setTimeout(req.send, 0);
-        } else {
-            errback(new Error('X-Domain request failed because unknown XHR object was provided'));
         }
+    }
+
+    function _getSource(location, cache) {
+        return new Promise(function(resolve, reject) {
+            if (cache[location]) {
+                resolve(cache[location]);
+            } else {
+                _xdr(location, function(source) {
+                    cache[location] = source;
+                    resolve(source);
+                }, reject);
+            }
+        });
     }
 
     /**
      * Create XHR or equivalent object for this environment.
-     * @returns XMLHttpRequest or ActiveXObject
+     * @returns XMLHttpRequest, XDomainRequest or ActiveXObject
      * @private
      */
     function _createXMLHTTPObject() {
@@ -76,7 +89,7 @@
             try {
                 xmlhttp = XMLHttpFactories[i]();
                 // Use memoization to cache the factory
-//                _createXMLHTTPObject = XMLHttpFactories[i];
+                _createXMLHTTPObject = XMLHttpFactories[i]; // jshint ignore:line
                 return xmlhttp;
             } catch (e) {
             }
@@ -90,12 +103,13 @@
         var reFunctionExpression = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/;
         // {name} = eval()
         var reFunctionEvaluation = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/;
+        var lines = source.split("\n");
 
         // Walk backwards in the source lines until we find the line which matches one of the patterns above
         var code = '', line, maxLines = Math.min(lineNumber, 20), m, commentPos;
         for (var i = 0; i < maxLines; ++i) {
             // lineNo is 1-based, source[] is 0-based
-            line = source[lineNumber - i - 1];
+            line = lines[lineNumber - i - 1];
             commentPos = line.indexOf('//');
             if (commentPos >= 0) {
                 line = line.substr(0, commentPos);
@@ -133,29 +147,17 @@
          * @returns String function name or undefined (which allows other enhancers a shot)
          */
         this.findFunctionName = function findFunctionName(location, lineNumber, columnNumber) {
-            if (typeof location !== 'string') {
-                throw new TypeError('Given URL is not a String');
-            } else if (typeof lineNumber !== 'number' || lineNumber % 1 !== 0 || lineNumber < 1) {
-                throw new TypeError('Given line number must be a positive integer');
-            }
-
-            function callback(cache) {
-                return function(source) {
-                    cache[location] = source;
-                    return _findFunctionName(cache[location], lineNumber, columnNumber || 0);
-                };
-            }
-
-            function errback(err) {
-                throw err;
-            }
-
-            if (!this.sourceCache[location]) {
-                return _xdr(location, callback(this.sourceCache), errback);
-            } else {
-                // FIXME: duplication
-                return _findFunctionName(this.sourceCache[location], lineNumber, columnNumber || 0);
-            }
+            return new Promise(function(resolve, reject) {
+                if (typeof location !== 'string') {
+                    reject(new TypeError('Given URL is not a String'));
+                } else if (typeof lineNumber !== 'number' || lineNumber % 1 !== 0 || lineNumber < 1) {
+                    reject(new TypeError('Given line number must be a positive integer'));
+                } else {
+                    _getSource(location, this.sourceCache).then(function(source) {
+                        resolve(_findFunctionName(source, lineNumber, columnNumber || 0));
+                    }, reject);
+                }
+            }.bind(this));
         };
     };
 }));

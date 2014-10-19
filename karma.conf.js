@@ -1,8 +1,9 @@
 module.exports = function (config) {
     config.set({
         basePath: '',
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'sinon'],
         files: [
+            'node_modules/es6-promise/dist/es6-promise.js',
             'stacktrace-gps.js',
             'spec/*-spec.js'
         ],
