@@ -17,6 +17,9 @@
     "nonbsp": true,
     "freeze": true,
     "predef": {
+        "ActiveXObject": false,
+        "XDomainRequest": false,
+        "StackTraceGPS": false,
         "afterEach": false,
         "beforeEach": false,
         "define": false,
