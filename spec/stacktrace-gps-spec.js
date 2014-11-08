@@ -15,7 +15,7 @@ describe('StackTraceGPS', function () {
     describe('#findFunctionName', function () {
         it('rejects given non-object StackFrame', function () {
             runs(function() {
-                new StackTraceGPS().findFunctionName('http://localhost:9999/file.js', callback, errback);
+                StackTraceGPS().findFunctionName('http://localhost:9999/file.js', callback, errback); // jshint ignore:line
             });
             waits(100);
             runs(function() {
