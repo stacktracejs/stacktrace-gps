@@ -144,7 +144,6 @@
     }
 
     function _findSourceMappingURL(source) {
-        // FIXME: failing on IE11 and 9
         var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)$/.exec(source);
         if (m && m[1]) {
             return m[1];
