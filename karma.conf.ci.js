@@ -33,7 +33,8 @@ module.exports = function (config) {
         basePath: '',
         frameworks: ['jasmine', 'sinon'],
         files: [
-            'node_modules/es6-promise/dist/es6-promise.js',
+            'node_modules/stackframe/stackframe.js',
+            'build/source-map-consumer.min.js',
             'stacktrace-gps.js',
             'spec/*-spec.js'
         ],

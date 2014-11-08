@@ -9,7 +9,7 @@ logs
 results
 
 node_modules
-bower_components
+build
 coverage
 
 .idea

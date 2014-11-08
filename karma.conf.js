@@ -3,7 +3,8 @@ module.exports = function (config) {
         basePath: '',
         frameworks: ['jasmine', 'sinon'],
         files: [
-            'node_modules/es6-promise/dist/es6-promise.js',
+            'node_modules/stackframe/stackframe.js',
+            'build/source-map-consumer.min.js',
             'stacktrace-gps.js',
             'spec/*-spec.js'
         ],
@@ -20,7 +21,7 @@ module.exports = function (config) {
         logLevel: config.LOG_INFO,
         autoWatch: true,
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Firefox', 'ChromeCanary', 'Opera', 'Safari', 'PhantomJS'],
+        browsers: ['ChromeCanary', 'Firefox', 'Opera', 'Safari'],
         singleRun: false
     });
 };
