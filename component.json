@@ -1,6 +1,0 @@
-{
-    "name": "stacktrace-gps",
-    "version": "0.2.0",
-    "main": "./stacktrace-gps.js",
-    "dependencies": {}
-}
