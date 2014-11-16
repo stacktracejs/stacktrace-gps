@@ -38,6 +38,7 @@
         "karma-sauce-launcher": "^0.2.10",
         "karma-sinon": "^1.0.3",
         "sinon": "^1.10.3",
+        "uglify-js2": "^2.1.11",
         "webpack": "^1.4.12"
     },
     "bugs": {
