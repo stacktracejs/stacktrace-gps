@@ -27,11 +27,8 @@ build:
 
 dist: build/source-map-consumer.min.js
 	mkdir dist
-	cp build/source-map-consumer.min.js dist/source-map-consumer.min.js
-	./node_modules/.bin/uglifyjs2 stacktrace-gps.js -o stacktrace-gps.min.js \
-		--source-map stacktrace-gps.js.map
-	cp stacktrace-gps.js dist/
-	mv stacktrace-gps.min.js dist/
-	mv stacktrace-gps.js.map dist/
+	./node_modules/.bin/uglifyjs2 build/source-map-consumer.min.js stacktrace-gps.js \
+	 	-o stacktrace-gps.min.js --source-map stacktrace-gps.js.map
+	mv stacktrace-gps.min.js stacktrace-gps.js.map dist/
 
 .PHONY: clean test dist
