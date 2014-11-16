@@ -159,9 +159,28 @@ describe('StackTraceGPS', function () {
             });
         });
 
-        it('returns new location information given valid input', function () {
+        it('retrieves source mapped location for function expressions', function () {
             runs(function() {
-                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 30);
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 5);
+                new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
+                var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+                server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
+            });
+            waits(100);
+            runs(function() {
+                var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+                server.requests[1].respond(200, { 'Content-Type': 'application/json' }, sourceMap);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalledWith({source: './test.js', line: 1, column: 4, name: 'foo'});
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+
+        it('retrieves source mapped location for function declarations', function () {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 32);
                 new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
                 var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
@@ -174,6 +193,25 @@ describe('StackTraceGPS', function () {
             waits(100);
             runs(function() {
                 expect(callback).toHaveBeenCalledWith({source: './test.js', line: 2, column: 9, name: 'bar'});
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+
+        it('retrieves source mapped location for eval', function () {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 47);
+                new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
+                var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+                server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
+            });
+            waits(100);
+            runs(function() {
+                var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+                server.requests[1].respond(200, { 'Content-Type': 'application/json' }, sourceMap);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalledWith({source: './test.js', line: 3, column: 10, name: 'eval'});
                 expect(errback).not.toHaveBeenCalled();
             });
         });
