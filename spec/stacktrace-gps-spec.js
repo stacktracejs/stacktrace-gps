@@ -15,24 +15,26 @@ describe('StackTraceGPS', function () {
     describe('#findFunctionName', function () {
         it('rejects given non-object StackFrame', function () {
             runs(function() {
-                StackTraceGPS().findFunctionName('http://localhost:9999/file.js', callback, errback); // jshint ignore:line
+                StackTraceGPS().findFunctionName('').then(callback, errback); // jshint ignore:line
             });
             waits(100);
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
+                // FIXME: fails in Safari 7.1
                 //expect(errback).toHaveBeenCalledWith(new TypeError('Given StackFrame is not an object'));
             });
         });
 
         it('rejects given invalid URL String', function () {
             runs(function() {
-                new StackTraceGPS().findFunctionName(undefined, callback, errback);
+                new StackTraceGPS().findFunctionName(new StackFrame()).then(callback, errback);
             });
             waits(100);
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
+                // FIXME: fails in Safari 7.1
                 //expect(errback).toHaveBeenCalledWith(new TypeError('Given file name is not a String'));
             });
         });
@@ -40,12 +42,13 @@ describe('StackTraceGPS', function () {
         it('rejects given invalid line number', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js');
-                new StackTraceGPS().findFunctionName(stackframe, callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
             });
             waits(100);
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
+                // FIXME: fails in Safari 7.1
                 //expect(errback).toHaveBeenCalledWith(new TypeError('Given line number must be a positive integer'));
             });
         });
@@ -53,21 +56,21 @@ describe('StackTraceGPS', function () {
         it('rejects if source file could not be found', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
-                new StackTraceGPS().findFunctionName(stackframe, callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 server.requests[0].respond(404, {}, 'Not Found');
             });
             waits(100);
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                //expect(errback).toHaveBeenCalledWith(new Error('Unable to retrieve http://localhost:9999/file.js'));
+                expect(errback).toHaveBeenCalledWith(new Error('Unable to retrieve http://localhost:9999/file.js'));
             });
         });
 
         it('finds function name within function expression', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
-                new StackTraceGPS().findFunctionName(stackframe, callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
@@ -81,7 +84,7 @@ describe('StackTraceGPS', function () {
         it('finds function name within function declaration', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
-                new StackTraceGPS().findFunctionName(stackframe, callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
@@ -95,7 +98,7 @@ describe('StackTraceGPS', function () {
         it('finds function name within function evaluation', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 3, 3);
-                new StackTraceGPS().findFunctionName(stackframe, callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
@@ -109,7 +112,7 @@ describe('StackTraceGPS', function () {
         it('resolves to undefined if function name could not be found', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 0);
-                new StackTraceGPS().findFunctionName(stackframe, callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, '');
             });
             waits(100);
@@ -123,14 +126,14 @@ describe('StackTraceGPS', function () {
             var unit = new StackTraceGPS();
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 3, 3);
-                unit.findFunctionName(stackframe, callback, errback);
+                unit.findFunctionName(stackframe).then(callback, errback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
             waits(100);
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
-                unit.findFunctionName(stackframe, callback, errback);
+                unit.findFunctionName(stackframe).then(callback, errback);
             });
             waits(100);
             runs(function() {
@@ -143,7 +146,7 @@ describe('StackTraceGPS', function () {
         it('rejects if source map file could not be found', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.js', 23, 0);
-                new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, errback);
                 var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
@@ -162,7 +165,7 @@ describe('StackTraceGPS', function () {
         it('retrieves source mapped location for function expressions', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 5);
-                new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, errback);
                 var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
@@ -181,7 +184,7 @@ describe('StackTraceGPS', function () {
         it('retrieves source mapped location for function declarations', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 32);
-                new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, errback);
                 var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
@@ -200,7 +203,7 @@ describe('StackTraceGPS', function () {
         it('retrieves source mapped location for eval', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 47);
-                new StackTraceGPS().getMappedLocation(stackframe, callback, errback);
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, errback);
                 var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });

@@ -2,14 +2,16 @@
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
     if (typeof define === 'function' && define.amd) {
-        define(['source-map'], factory);
+        define(['source-map', 'es6-promise'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'));
+        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('es6-promise'));
     } else {
-        root.StackTraceGPS = factory(root.SourceMap);
+        root.StackTraceGPS = factory(root.SourceMap, root.ES6Promise);
     }
-}(this, function (SourceMap) {
+}(this, function (SourceMap, ES6Promise) {
     'use strict';
+    ES6Promise.polyfill();
+    var Promise = ES6Promise.Promise;
 
     /**
      * Create XHR or equivalent object for this environment.
@@ -80,15 +82,17 @@
         }
     }
 
-    function _getSource(location, cache, callback, errback) {
-        if (cache[location]) {
-            callback(cache[location]);
-        } else {
-            _xdr(location, function (source) {
-                cache[location] = source;
-                callback(source);
-            }, errback);
-        }
+    function _getSource(location, cache) {
+        return new Promise(function (resolve, reject) {
+            if (cache[location]) {
+                resolve(cache[location]);
+            } else {
+                _xdr(location, function (source) {
+                    cache[location] = source;
+                    resolve(source);
+                }, reject);
+            }
+        });
     }
 
     function _findFunctionName(source, lineNumber, columnNumber) {
@@ -130,6 +134,12 @@
         return undefined;
     }
 
+    function _ensureSupportedEnvironment() {
+        if (typeof Object.defineProperty !== 'function' || typeof Object.create !== 'function') {
+            throw new Error('Unable to consume source maps in older browsers');
+        }
+    }
+
     function _ensureStackFrameIsLegit(stackframe) {
         if (typeof stackframe !== 'object') {
             throw new TypeError('Given StackFrame is not an object');
@@ -168,40 +178,33 @@
          * Given location information for a Function definition, return the function name.
          *
          * @param stackframe - {StackFrame}-like object (e.g {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5})
-         * @param callback - {Function} called back with found function name or undefined
-         * @param errback - {Function} called back with Error object with failure
          */
-        this.findFunctionName = function findFunctionName(stackframe, callback, errback) {
-            try {
+        this.findFunctionName = function findFunctionName(stackframe) {
+            return new Promise(function (resolve, reject) {
                 _ensureStackFrameIsLegit(stackframe);
-                _getSource(stackframe.fileName, this.sourceCache, function(source) {
-                    callback(_findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber));
-                }, errback);
-            } catch(e) {
-                errback(e);
-            }
+                _getSource(stackframe.fileName, this.sourceCache).then(function getSourceCallback(source) {
+                    resolve(_findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber));
+                }, reject);
+            }.bind(this));
         };
 
         /**
          * Given location information for a Function definition, return the function name.
          *
          * @param stackframe - {StackFrame}-like object (e.g {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5})
-         * @param callback - {Function} called back with found function name or undefined
-         * @param errback - {Function} called back with Error object with failure
          */
-        this.getMappedLocation = function sourceMap(stackframe, callback, errback) {
-            try {
+        this.getMappedLocation = function sourceMap(stackframe) {
+            return new Promise(function (resolve, reject) {
+                _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
-                _getSource(stackframe.fileName, this.sourceCache, function(source) {
-                    _getSource(_findSourceMappingURL(source), this.sourceCache, function(map) {
+                _getSource(stackframe.fileName, this.sourceCache).then(function (source) {
+                    _getSource(_findSourceMappingURL(source), this.sourceCache).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
-                        callback(_newLocationInfoFromSourceMap(map, lineNumber, columnNumber));
-                    }, errback);
-                }.bind(this), errback);
-            } catch(e) {
-                errback(e);
-            }
+                        resolve(_newLocationInfoFromSourceMap(map, lineNumber, columnNumber));
+                    }, reject);
+                }.bind(this), reject);
+            }.bind(this));
         };
     };
 }));
