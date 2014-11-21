@@ -5,7 +5,7 @@
         "Eric Wendelin <me@eriwen.com> (http://www.eriwen.com)",
         "Victor Homyakov <vkhomyackov@gmail.com> (https://github.com/victor-homyakov)"
     ],
-    "version": "0.2.1",
+    "version": "1.0.0",
     "keywords": [
         "stacktrace",
         "error",
@@ -17,8 +17,9 @@
         "url": "git://github.com/stacktracejs/stacktrace-gps.git"
     },
     "dependencies": {
-        "stackframe": "~0",
-        "source-map": "^0.1.40"
+        "es6-promise": "~2",
+        "source-map": "^0.1.40",
+        "stackframe": "~0"
     },
     "devDependencies": {
         "colors": "~1.0.3",
