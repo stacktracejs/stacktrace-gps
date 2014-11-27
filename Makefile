@@ -1,4 +1,5 @@
 BROWSERS=Firefox,ChromeCanary,Opera,Safari
+ES6_PROMISE_VERSION=2.0.0
 
 build:
 	mkdir build
@@ -15,7 +16,7 @@ test-ci: build/jshint.xml build/es6-promise.js build/source-map-consumer.js
 		cat ./coverage/Chrome*/lcov.info | ./node_modules/coveralls/bin/coveralls.js --verbose
 
 build/es6-promise.js: build
-	curl https://es6-promises.s3.amazonaws.com/es6-promise-2.0.0.js -o build/es6-promise.js
+	curl https://es6-promises.s3.amazonaws.com/es6-promise-${ES6_PROMISE_VERSION}.js -o build/es6-promise.js
 
 build/source-map-consumer.js: build
 	./node_modules/.bin/webpack node_modules/source-map/lib/source-map/source-map-consumer.js \
