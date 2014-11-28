@@ -5,7 +5,7 @@ module.exports = function (config) {
         files: [
             'node_modules/stackframe/stackframe.js',
             'build/source-map-consumer.js',
-            'build/es6-promise-2.0.0.js',
+            'build/es6-promise.js',
             'stacktrace-gps.js',
             'spec/*-spec.js'
         ],
