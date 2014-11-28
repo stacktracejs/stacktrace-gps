@@ -82,19 +82,6 @@
         }
     }
 
-    function _getSource(location, cache) {
-        return new Promise(function (resolve, reject) {
-            if (cache[location]) {
-                resolve(cache[location]);
-            } else {
-                _xdr(location, function (source) {
-                    cache[location] = source;
-                    resolve(source);
-                }, reject);
-            }
-        });
-    }
-
     function _findFunctionName(source, lineNumber, columnNumber) {
         // function {name}({args}) m[1]=name m[2]=args
         var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
@@ -174,36 +161,52 @@
 
         this.sourceCache = {};
 
-        /**
-         * Given location information for a Function definition, return the function name.
-         *
-         * @param stackframe - {StackFrame}-like object (e.g {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5})
-         */
-        this.findFunctionName = function findFunctionName(stackframe) {
+        this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
-                _ensureStackFrameIsLegit(stackframe);
-                _getSource(stackframe.fileName, this.sourceCache).then(function getSourceCallback(source) {
-                    resolve(_findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber));
-                }, reject);
+                if (this.sourceCache[location]) {
+                    resolve(this.sourceCache[location]);
+                } else {
+                    _xdr(location, function (source) {
+                        this.sourceCache[location] = source;
+                        resolve(source);
+                    }.bind(this), reject);
+                }
             }.bind(this));
         };
 
         /**
          * Given location information for a Function definition, return the function name.
          *
-         * @param stackframe - {StackFrame}-like object (e.g {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5})
+         * @param stackframe - {StackFrame}-like object
+         *      {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5}
+         */
+        this.findFunctionName = function findFunctionName(stackframe) {
+            return new Promise(function (resolve, reject) {
+                _ensureStackFrameIsLegit(stackframe);
+                this._get(stackframe.fileName).then(function getSourceCallback(source) {
+                    resolve(_findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber));
+                }, reject);
+            }.bind(this));
+        };
+
+        /**
+         * Given a StackFrame, seek source-mapped location and return source-mapped location.
+         *
+         * @param stackframe - {StackFrame}-like object
+         *      {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5}
          */
         this.getMappedLocation = function sourceMap(stackframe) {
             return new Promise(function (resolve, reject) {
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
-                _getSource(stackframe.fileName, this.sourceCache).then(function (source) {
-                    _getSource(_findSourceMappingURL(source), this.sourceCache).then(function (map) {
+
+                this._get(stackframe.fileName).then(function (source) {
+                    this._get(_findSourceMappingURL(source)).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
                         resolve(_newLocationInfoFromSourceMap(map, lineNumber, columnNumber));
-                    }, reject);
-                }.bind(this), reject);
+                    }, reject)['catch'](reject);
+                }.bind(this), reject)['catch'](reject);
             }.bind(this));
         };
     };

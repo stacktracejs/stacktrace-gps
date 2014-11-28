@@ -143,7 +143,22 @@ describe('StackTraceGPS', function () {
     });
 
     describe('#sourceMap', function () {
-        it('rejects if source map file could not be found', function () {
+        it('rejects if sourceMapURL not found', function() {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.js', 23, 0);
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, errback);
+                var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");';
+                server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).not.toHaveBeenCalled();
+                expect(errback).toHaveBeenCalled();
+                //expect(errback).toHaveBeenCalledWith(new Error('sourceMappingURL not found'));
+            });
+        });
+
+        it('rejects if source map file 404s', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.js', 23, 0);
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, errback);
