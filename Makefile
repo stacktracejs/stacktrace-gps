@@ -34,5 +34,6 @@ dist: build/es6-promise.js build/source-map-consumer.js
 	./node_modules/.bin/uglifyjs2 build/es6-promise.js build/source-map-consumer.js \
 		stacktrace-gps.js -o stacktrace-gps.min.js --source-map stacktrace-gps.js.map
 	mv stacktrace-gps.min.js stacktrace-gps.js.map dist/
+	cp stacktrace-gps.js dist/
 
 .PHONY: clean test dist
