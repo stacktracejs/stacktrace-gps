@@ -22,13 +22,10 @@
         var xmlhttp;
         var XMLHttpFactories = [
             function () {
-                return new XMLHttpRequest();
-            }, function () {
+                // Test XDomainRequest first to maximize availability of cross-domain XHR
                 return new XDomainRequest();
             }, function () {
-                return new ActiveXObject('Msxml2.XMLHTTP');
-            }, function () {
-                return new ActiveXObject('Msxml3.XMLHTTP');
+                return new XMLHttpRequest();
             }, function () {
                 return new ActiveXObject('Microsoft.XMLHTTP');
             }
@@ -53,11 +50,6 @@
      */
     function _xdr(url, callback, errback) {
         var req = _createXMLHTTPObject();
-
-        if (!req) {
-            errback(new Error('X-Domain request failed because no form of XHR is supported'));
-        }
-
         req.open('get', url);
         req.onerror = errback;
 
