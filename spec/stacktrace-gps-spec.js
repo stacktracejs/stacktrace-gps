@@ -143,6 +143,17 @@ describe('StackTraceGPS', function () {
     });
 
     describe('#sourceMap', function () {
+        it('rejects given invalid StackFrame', function() {
+            runs(function() {
+                new StackTraceGPS().getMappedLocation('BOGUS').then(callback, errback);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).not.toHaveBeenCalled();
+                expect(errback).toHaveBeenCalled();
+            });
+        });
+
         it('rejects if sourceMapURL not found', function() {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.js', 23, 0);
