@@ -7,6 +7,12 @@ module.exports = function (config) {
 
     // Check out https://saucelabs.com/platforms for all browser/platform combos
     var customLaunchers = {
+        slIOS8: {
+            base: 'SauceLabs',
+            browserName: 'iPhone',
+            platform: 'OS X 10.9',
+            version: '8.1'
+        },
         slChrome: {
             base: 'SauceLabs',
             browserName: 'chrome'
@@ -14,12 +20,6 @@ module.exports = function (config) {
         slFirefox: {
             base: 'SauceLabs',
             browserName: 'firefox'
-        },
-        slSafari: {
-            base: 'SauceLabs',
-            browserName: 'safari',
-            platform: 'Mac OS X 10.10',
-            version: '8'
         },
         slOpera: {
             base: 'SauceLabs',
