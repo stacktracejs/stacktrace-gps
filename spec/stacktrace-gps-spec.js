@@ -67,6 +67,33 @@ describe('StackTraceGPS', function () {
             });
         });
 
+        it('rejects in offline mode if sources not in source cache', function() {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
+                new StackTraceGPS({offline: true}).findFunctionName(stackframe).then(callback, errback);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).not.toHaveBeenCalled();
+                expect(errback).toHaveBeenCalled();
+                expect(errback).toHaveBeenCalledWith(new Error('Cannot make network requests in offline mode'));
+            });
+        });
+
+        it('resolves sources from given sourceCache', function() {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
+                var sourceCache = {'http://localhost:9999/file.js': 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")'};
+                new StackTraceGPS({sourceCache: sourceCache}).findFunctionName(stackframe).then(callback, errback);
+                // NOTE: no fake server response necessary
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalledWith('foo');
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+
         it('finds function name within function expression', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);

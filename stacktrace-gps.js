@@ -156,13 +156,16 @@
         if (!(this instanceof StackTraceGPS)) {
             return new StackTraceGPS(opts);
         }
+        opts = opts || {};
 
-        this.sourceCache = (opts && opts.sourceCache) ? opts.sourceCache : {};
+        this.sourceCache = opts.sourceCache || {};
 
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
                 if (this.sourceCache[location]) {
                     resolve(this.sourceCache[location]);
+                } else if (opts.offline) {
+                    reject(new Error('Cannot make network requests in offline mode'));
                 } else {
                     _xdr(location, function (source) {
                         this.sourceCache[location] = source;
@@ -198,6 +201,7 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
+                // TODO: support multi-level source maps
                 this._get(stackframe.fileName).then(function (source) {
                     this._get(_findSourceMappingURL(source)).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
