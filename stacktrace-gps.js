@@ -146,12 +146,18 @@
             .originalPositionFor({line: lineNumber, column: columnNumber});
     }
 
+    /**
+     * @param opts: [Object] options.
+     *      opts.sourceCache = {url: "Source String"} => preload source cache
+     *      opts.offline = True to prevent network requests.
+     *              Best effort without sources or source maps.
+     */
     return function StackTraceGPS(opts) {
         if (!(this instanceof StackTraceGPS)) {
             return new StackTraceGPS(opts);
         }
 
-        this.sourceCache = {};
+        this.sourceCache = (opts && opts.sourceCache) ? opts.sourceCache : {};
 
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
