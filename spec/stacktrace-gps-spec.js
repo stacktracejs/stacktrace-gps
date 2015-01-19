@@ -229,7 +229,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith({source: './test.js', line: 1, column: 4, name: 'foo'});
+                expect(callback).toHaveBeenCalledWith({source: 'test.js', line: 1, column: 4, name: 'foo'});
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -248,7 +248,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith({source: './test.js', line: 2, column: 9, name: 'bar'});
+                expect(callback).toHaveBeenCalledWith({source: 'test.js', line: 2, column: 9, name: 'bar'});
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -267,7 +267,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith({source: './test.js', line: 3, column: 10, name: 'eval'});
+                expect(callback).toHaveBeenCalledWith({source: 'test.js', line: 3, column: 10, name: 'eval'});
                 expect(errback).not.toHaveBeenCalled();
             });
         });

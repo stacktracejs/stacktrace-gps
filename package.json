@@ -17,8 +17,8 @@
         "url": "git://github.com/stacktracejs/stacktrace-gps.git"
     },
     "dependencies": {
-        "es6-promise": "~2",
-        "source-map": "^0.1.40",
+        "es6-promise": "^2.0.1",
+        "source-map": "^0.1.43",
         "stackframe": "~0"
     },
     "devDependencies": {
@@ -38,7 +38,7 @@
         "karma-safari-launcher": "^0.1.1",
         "karma-sauce-launcher": "^0.2.10",
         "karma-sinon": "^1.0.3",
-        "sinon": "^1.12.1",
+        "sinon": "^1.12.2",
         "uglify-js2": "^2.1.11",
         "webpack": "^1.4.12"
     },
