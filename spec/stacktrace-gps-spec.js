@@ -1,13 +1,23 @@
 describe('StackTraceGPS', function () {
-    var server;
     var callback;
+    var debugCallback;
     var errback;
+    var debugErrback;
+    var server;
 
     beforeEach(function () {
-        server = sinon.fakeServer.create();
         callback = jasmine.createSpy('callback');
         errback = jasmine.createSpy('errback');
+        debugCallback = function (stackframes) {
+            console.log(stackframes);
+        };
+        debugErrback = function (e) {
+            console.log(e.message);
+            console.log(e.stack);
+        };
+        server = sinon.fakeServer.create();
     });
+
     afterEach(function () {
         server.restore();
     });
@@ -70,7 +80,7 @@ describe('StackTraceGPS', function () {
         it('rejects in offline mode if sources not in source cache', function() {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
-                new StackTraceGPS({offline: true}).findFunctionName(stackframe).then(callback, errback);
+                new StackTraceGPS({offline: true}).findFunctionName(stackframe).then(callback, errback)['catch'](debugErrback);
             });
             waits(100);
             runs(function() {
@@ -89,7 +99,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith('foo');
+                expect(callback).toHaveBeenCalledWith(new StackFrame('foo', [], 'http://localhost:9999/file.js', 1, 4));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -99,11 +109,12 @@ describe('StackTraceGPS', function () {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
                 new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
+                // FIXME(ew): IE 10 "Invalid calling object" and IE 9 "INVALID_STATE_ERR" in the process of responding
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith('foo');
+                expect(callback).toHaveBeenCalledWith(new StackFrame('foo', [], 'http://localhost:9999/file.js', 1, 4));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -117,7 +128,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith('bar');
+                expect(callback).toHaveBeenCalledWith(new StackFrame('bar', [], 'http://localhost:9999/file.js', 2, 0));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -131,7 +142,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith('baz');
+                expect(callback).toHaveBeenCalledWith(new StackFrame('baz', [], 'http://localhost:9999/file.js', 3, 3));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -144,7 +155,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith(undefined);
+                expect(callback).toHaveBeenCalledWith(new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 0));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -169,7 +180,7 @@ describe('StackTraceGPS', function () {
         });
     });
 
-    describe('#sourceMap', function () {
+    describe('#getMappedLocation', function () {
         it('rejects given invalid StackFrame', function() {
             runs(function() {
                 new StackTraceGPS().getMappedLocation('BOGUS').then(callback, errback);
@@ -229,7 +240,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith({source: 'test.js', line: 1, column: 4, name: 'foo'});
+                expect(callback).toHaveBeenCalledWith(new StackFrame('foo', [], 'test.js', 1, 4));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -248,7 +259,7 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith({source: 'test.js', line: 2, column: 9, name: 'bar'});
+                expect(callback).toHaveBeenCalledWith(new StackFrame('bar', [], 'test.js', 2, 9));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
@@ -267,9 +278,42 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
-                expect(callback).toHaveBeenCalledWith({source: 'test.js', line: 3, column: 10, name: 'eval'});
+                expect(callback).toHaveBeenCalledWith(new StackFrame('eval', [], 'test.js', 3, 10));
                 expect(errback).not.toHaveBeenCalled();
             });
         });
+    });
+
+    describe('#pinpoint', function () {
+       it('combines findFunctionName and getMappedLocation', function() {
+           runs(function() {
+               var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+               var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+               var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
+               server.respondWith('GET', 'http://localhost:9999/test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+               server.respondWith('GET', 'test.js.map', [200, { 'Content-Type': 'application/x-javascript' }, sourceMap]);
+               server.respondWith('GET', 'test.js', [200, { 'Content-Type': 'application/x-javascript' }, source]);
+
+               var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 47);
+               new StackTraceGPS().pinpoint(stackframe).then(callback, debugErrback)['catch'](debugErrback);
+           });
+           waits(100);
+           runs(function() {
+               server.respond();
+           });
+           waits(100);
+           runs(function() {
+               server.respond();
+           });
+           waits(100);
+           runs(function() {
+               server.respond();
+           });
+           waits(100);
+           runs(function() {
+               expect(callback).toHaveBeenCalledWith(new StackFrame('baz', [], 'test.js', 3, 10));
+               expect(errback).not.toHaveBeenCalled();
+           });
+       });
     });
 });
