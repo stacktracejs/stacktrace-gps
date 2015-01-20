@@ -1,6 +1,6 @@
 {
     "name": "stacktrace-gps",
-    "version": "1.0.4",
+    "version": "2.0.0",
     "main": "./stacktrace-gps.js",
     "homepage": "https://github.com/stacktracejs/stacktrace-gps",
     "authors": [
