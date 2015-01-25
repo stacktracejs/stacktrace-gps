@@ -44,7 +44,6 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                // FIXME: fails in Safari 7.1
                 //expect(errback).toHaveBeenCalledWith(new TypeError('Given file name is not a String'));
             });
         });
@@ -58,13 +57,26 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                // FIXME: fails in Safari 7.1
                 //expect(errback).toHaveBeenCalledWith(new TypeError('Given line number must be a positive integer'));
+            });
+        });
+
+        it('rejects given invalid column number', function () {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 10, -1);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).not.toHaveBeenCalled();
+                expect(errback).toHaveBeenCalled();
+                //expect(errback).toHaveBeenCalledWith(new TypeError('Given line number must be a non-negative integer'));
             });
         });
 
         it('rejects if source file could not be found', function () {
             runs(function() {
+                server.respondWith('GET', 'http://localhost:9999/file.js', [404, { 'Content-Type': 'application/x-javascript' }, '']);
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
                 new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 server.requests[0].respond(404, {}, 'Not Found');
@@ -94,7 +106,7 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
                 var sourceCache = {'http://localhost:9999/file.js': 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")'};
-                new StackTraceGPS({sourceCache: sourceCache}).findFunctionName(stackframe).then(callback, errback);
+                new StackTraceGPS({sourceCache: sourceCache}).findFunctionName(stackframe).then(callback, errback)['catch'](debugErrback);
                 // NOTE: no fake server response necessary
             });
             waits(100);
@@ -106,11 +118,11 @@ describe('StackTraceGPS', function () {
 
         it('finds function name within function expression', function () {
             runs(function() {
-                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
-                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
-                // FIXME(ew): IE 10 "Invalid calling object" and IE 9 "INVALID_STATE_ERR" in the process of responding
-                server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
+                server.respondWith('GET', 'http://localhost:9999/file.js', [200, { 'Content-Type': 'application/x-javascript' }, source]);
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, debugErrback)['catch'](debugErrback);
+                server.respond();
             });
             waits(100);
             runs(function() {
@@ -122,7 +134,7 @@ describe('StackTraceGPS', function () {
         it('finds function name within function declaration', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
-                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback)['catch'](debugErrback);
                 var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
                 server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
             });
