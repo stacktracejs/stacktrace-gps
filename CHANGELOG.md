@@ -1,3 +1,6 @@
+## v2.1.0
+* Revert change: allow cross-domain XHR in IE8 and IE9 - too unstable
+
 ## v2.0.0
 * Return StackFrame objects instead of partial code locations
 * Add StackTraceGPS.pinpoint(stackframe) enhancing location and function name
