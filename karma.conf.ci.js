@@ -61,19 +61,19 @@ module.exports = function (config) {
             browserName: 'internet explorer',
             platform: 'Windows 8.1',
             version: '11'
-        }
+        },
         //slIE10: {
         //    base: 'SauceLabs',
         //    browserName: 'internet explorer',
         //    platform: 'Windows 8',
         //    version: '10'
         //},
-        //slIE9: {
-        //    base: 'SauceLabs',
-        //    browserName: 'internet explorer',
-        //    platform: 'Windows 7',
-        //    version: '9'
-        //}
+        slIE9: {
+            base: 'SauceLabs',
+            browserName: 'internet explorer',
+            platform: 'Windows 7',
+            version: '9'
+        }
     };
 
     config.set({
