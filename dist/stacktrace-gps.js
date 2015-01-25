@@ -22,9 +22,6 @@
         var xmlhttp;
         var XMLHttpFactories = [
             function () {
-                // Test XDomainRequest first to maximize availability of cross-domain XHR
-                return new XDomainRequest();
-            }, function () {
                 return new XMLHttpRequest();
             }, function () {
                 return new ActiveXObject('Microsoft.XMLHTTP');
@@ -52,26 +49,16 @@
         var req = _createXMLHTTPObject();
         req.open('get', url);
         req.onerror = errback;
-
-        if (req instanceof XMLHttpRequest || req instanceof ActiveXObject) {
-            req.onreadystatechange = function onreadystatechange() {
-                if (req.readyState === 4) {
-                    if (req.status >= 200 && req.status < 400) {
-                        return callback(req.responseText);
-                    } else {
-                        errback(new Error('Unable to retrieve ' + url));
-                    }
+        req.onreadystatechange = function onreadystatechange() {
+            if (req.readyState === 4) {
+                if (req.status >= 200 && req.status < 400) {
+                    return callback(req.responseText);
+                } else {
+                    errback(new Error('Unable to retrieve ' + url));
                 }
-            };
-            req.send();
-        } else {
-            req.onload = function onload() {
-                callback(req.responseText);
-            };
-
-            // Avoid bug with concurrent requests in XDomainRequest API
-            setTimeout(req.send, 0);
-        }
+            }
+        };
+        req.send();
     }
 
     function _findFunctionName(source, lineNumber, columnNumber) {
