@@ -63,7 +63,7 @@ Functions that rely on [Source Maps](http://www.html5rocks.com/en/tutorials/deve
 * Firefox 23+
 * Safari 8+
 * Opera 24+
-* IE 11+
+* IE 9+
 * iOS 7+
 * Android 4.2+
 
