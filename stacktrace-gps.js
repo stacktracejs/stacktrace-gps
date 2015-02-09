@@ -2,11 +2,11 @@
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
     if (typeof define === 'function' && define.amd) {
-        define('stacktrace-gps', ['source-map', 'es6-promise'], factory);
+        define('stacktrace-gps', ['source-map', 'es6-promise', 'stackframe'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('es6-promise'));
+        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('es6-promise'), require('stackframe'));
     } else {
-        root.StackTraceGPS = factory(root.SourceMap, root.ES6Promise);
+        root.StackTraceGPS = factory(root.SourceMap, root.ES6Promise, root.StackFrame);
     }
 }(this, function (SourceMap, ES6Promise) {
     'use strict';
@@ -205,7 +205,6 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
-                // TODO: support multi-level source maps
                 this._get(stackframe.fileName).then(function (source) {
                     this._get(_findSourceMappingURL(source)).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
