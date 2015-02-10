@@ -1,4 +1,4 @@
-## v2.1.1
+## v2.1.2
 * .pinpoint() resolves to source-mapped stackframe even if other analysis fails.
 * Fix stackframe dependency in CommonJS definition
 
