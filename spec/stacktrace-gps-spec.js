@@ -159,6 +159,21 @@ describe('StackTraceGPS', function () {
             });
         });
 
+        it('ignores commented out function definitions', function () {
+            runs(function() {
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
+                new StackTraceGPS().findFunctionName(stackframe).then(callback, errback);
+                var source = 'var foo = function() {\n//function bar() {}\nvar baz = eval("XXX")};';
+                server.requests[0].respond(200, { 'Content-Type': 'application/x-javascript' }, source);
+            });
+            waits(100);
+            runs(function() {
+                // Finds 'foo' because we search upward until we find a function definition
+                expect(callback).toHaveBeenCalledWith(new StackFrame('foo', [], 'http://localhost:9999/file.js', 2, 0));
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+
         it('resolves to undefined if function name could not be found', function () {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 0);
