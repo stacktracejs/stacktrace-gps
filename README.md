@@ -16,15 +16,15 @@ var errback = function myErrback(error) { console.log(StackTrace.fromError(error
 var gps = new StackTraceGPS();
 
 // Pinpoint actual function name and source-mapped location
-gps.pinpoint(stackframe, callback, errback);
+gps.pinpoint(stackframe).then(callback, errback);
 => Promise(StackFrame('fun', [], 'file.js', 203, 9), Error)
 
 // Better location/name information from source maps
-gps.getMappedLocation(stackframe, callback, errback);
+gps.getMappedLocation(stackframe).then(callback, errback);
 => Promise(StackFrame(undefined, [], 'file.js', 203, 9), Error)
 
 // Get function name from location information
-gps.findFunctionName(stackframe, callback, errback);
+gps.findFunctionName(stackframe).then(callback, errback);
 => Promise(StackFrame('fun', [], 'http://localhost:3000/file.min.js', 1, 3284), Error)
 ```
 
