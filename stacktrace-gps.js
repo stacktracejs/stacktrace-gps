@@ -8,7 +8,7 @@
     } else {
         root.StackTraceGPS = factory(root.SourceMap, root.ES6Promise, root.StackFrame);
     }
-}(this, function (SourceMap, ES6Promise) {
+}(this, function (SourceMap, ES6Promise, StackFrame) {
     'use strict';
     ES6Promise.polyfill();
     var Promise = ES6Promise.Promise;
