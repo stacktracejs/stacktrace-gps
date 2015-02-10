@@ -1,3 +1,7 @@
+## v2.1.1
+* .pinpoint() resolves to source-mapped stackframe even if other analysis fails.
+* Fix stackframe dependency in CommonJS definition
+
 ## v2.1.0
 * Revert change: allow cross-domain XHR in IE8 and IE9 - too unstable
 
