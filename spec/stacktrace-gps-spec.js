@@ -297,17 +297,47 @@ describe('StackTraceGPS', function () {
     });
 
     describe('#pinpoint', function () {
-       it('combines findFunctionName and getMappedLocation', function() {
+        it('combines findFunctionName and getMappedLocation', function() {
+            runs(function() {
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+                var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+                var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
+                server.respondWith('GET', 'http://localhost:9999/test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+                server.respondWith('GET', 'test.js.map', [200, { 'Content-Type': 'application/x-javascript' }, sourceMap]);
+                server.respondWith('GET', 'test.js', [200, { 'Content-Type': 'application/x-javascript' }, source]);
+
+                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 47);
+                new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalledWith(new StackFrame('baz', [], 'test.js', 3, 10));
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+
+       it('resolves with mapped location even if find function name fails', function() {
            runs(function() {
                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
                var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
-               var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
                server.respondWith('GET', 'http://localhost:9999/test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
                server.respondWith('GET', 'test.js.map', [200, { 'Content-Type': 'application/x-javascript' }, sourceMap]);
-               server.respondWith('GET', 'test.js', [200, { 'Content-Type': 'application/x-javascript' }, source]);
+               server.respondWith('GET', 'test.js', [404, { 'Content-Type': 'application/x-javascript' }, '']);
 
                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 47);
-               new StackTraceGPS().pinpoint(stackframe).then(callback, debugErrback)['catch'](debugErrback);
+               new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
            });
            waits(100);
            runs(function() {
@@ -323,7 +353,7 @@ describe('StackTraceGPS', function () {
            });
            waits(100);
            runs(function() {
-               expect(callback).toHaveBeenCalledWith(new StackFrame('baz', [], 'test.js', 3, 10));
+               expect(callback).toHaveBeenCalledWith(new StackFrame('eval', [], 'test.js', 3, 10));
                expect(errback).not.toHaveBeenCalled();
            });
        });

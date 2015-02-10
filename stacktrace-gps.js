@@ -172,8 +172,17 @@
          * @return StackFrame with source-mapped location
          */
         this.pinpoint = function StackTraceGPS$$pinpoint(stackframe) {
-            return this.getMappedLocation(stackframe)
-                .then(this.findFunctionName.bind(this));
+            return new Promise(function (resolve, reject) {
+                this.getMappedLocation(stackframe).then(function (mappedStackFrame) {
+                    function resolveMappedStackFrame() {
+                        resolve(mappedStackFrame);
+                    }
+
+                    this.findFunctionName(mappedStackFrame)
+                        .then(resolve, resolveMappedStackFrame)
+                        ['catch'](resolveMappedStackFrame);
+                }.bind(this), reject);
+            }.bind(this));
         };
 
         /**
