@@ -148,6 +148,8 @@
 
         this.sourceCache = opts.sourceCache || {};
 
+        this.ajax = _xdr;
+
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
                 if (this.sourceCache[location]) {
@@ -155,7 +157,7 @@
                 } else if (opts.offline) {
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
-                    _xdr(location, function (source) {
+                    this.ajax(location, function (source) {
                         this.sourceCache[location] = source;
                         resolve(source);
                     }.bind(this), reject);

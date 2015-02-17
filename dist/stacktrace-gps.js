@@ -8,7 +8,7 @@
     } else {
         root.StackTraceGPS = factory(root.SourceMap, root.ES6Promise, root.StackFrame);
     }
-}(this, function (SourceMap, ES6Promise) {
+}(this, function (SourceMap, ES6Promise, StackFrame) {
     'use strict';
     ES6Promise.polyfill();
     var Promise = ES6Promise.Promise;
@@ -148,6 +148,8 @@
 
         this.sourceCache = opts.sourceCache || {};
 
+        this.ajax = _xdr;
+
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
                 if (this.sourceCache[location]) {
@@ -155,7 +157,7 @@
                 } else if (opts.offline) {
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
-                    _xdr(location, function (source) {
+                    this.ajax(location, function (source) {
                         this.sourceCache[location] = source;
                         resolve(source);
                     }.bind(this), reject);
@@ -172,8 +174,17 @@
          * @return StackFrame with source-mapped location
          */
         this.pinpoint = function StackTraceGPS$$pinpoint(stackframe) {
-            return this.getMappedLocation(stackframe)
-                .then(this.findFunctionName.bind(this));
+            return new Promise(function (resolve, reject) {
+                this.getMappedLocation(stackframe).then(function (mappedStackFrame) {
+                    function resolveMappedStackFrame() {
+                        resolve(mappedStackFrame);
+                    }
+
+                    this.findFunctionName(mappedStackFrame)
+                        .then(resolve, resolveMappedStackFrame)
+                        ['catch'](resolveMappedStackFrame);
+                }.bind(this), reject);
+            }.bind(this));
         };
 
         /**
