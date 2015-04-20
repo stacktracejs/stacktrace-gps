@@ -157,10 +157,14 @@
                 } else if (opts.offline) {
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
-                    this.ajax(location, function (source) {
-                        this.sourceCache[location] = source;
-                        resolve(source);
-                    }.bind(this), reject);
+                    try {
+                        this.ajax(location, function (source) {
+                            this.sourceCache[location] = source;
+                            resolve(source);
+                        }.bind(this), reject);
+                    } catch (e) {
+                        reject(e);
+                    }
                 }
             }.bind(this));
         };
