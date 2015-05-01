@@ -150,17 +150,40 @@
 
         this.ajax = _xdr;
 
+        this._atob = function(input) {
+            if (window && window.atob) {
+                return window.atob(input);
+            } else if (typeof Buffer !== 'undefined') {
+                return new Buffer(input, 'base64').toString('utf-8');
+            }
+            throw new Error('No base64 decoder available');
+        };
+
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
+                var isDataUrl = location.substr(0,5) === "data:";
                 if (this.sourceCache[location]) {
                     resolve(this.sourceCache[location]);
-                } else if (opts.offline) {
+                } else if (opts.offline && !isDataUrl) {
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
-                    this.ajax(location, function (source) {
-                        this.sourceCache[location] = source;
-                        resolve(source);
-                    }.bind(this), reject);
+                    if (isDataUrl) {
+                        var supportedEncoding = 'application/json;base64';
+                        if (location.substr(5,supportedEncoding.length) !== supportedEncoding) {
+                            reject(new Error('The encoding of the inline sourcemap is not supported'));
+                        } else {
+                            var sourceMapStart = 'data:'.length + supportedEncoding.length + ','.length;
+                            var encodedSource = location.substr(sourceMapStart);
+                            var source = this._atob(encodedSource);
+                            this.sourceCache[location] = source;
+                            resolve(source);
+                        }
+                    } else {
+                        this.ajax(location, function(source) {
+                            this.sourceCache[location] = source;
+                            resolve(source);
+                        }.bind(this), reject);
+                    }
                 }
             }.bind(this));
         };
