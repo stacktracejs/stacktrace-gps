@@ -242,8 +242,9 @@
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function (source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
-                    if (sourceMappingURL[0] != '/')
+                    if (sourceMappingURL[0] !== '/') {
                         sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/')) + '/' + sourceMappingURL;
+                    }
                     this._get(sourceMappingURL).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
