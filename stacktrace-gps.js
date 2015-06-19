@@ -239,8 +239,12 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
-                this._get(stackframe.fileName).then(function (source) {
-                    this._get(_findSourceMappingURL(source)).then(function (map) {
+                var fileName = stackframe.fileName;
+                this._get(fileName).then(function (source) {
+                    var sourceMappingURL = _findSourceMappingURL(source);
+                    if (sourceMappingURL[0] != '/')
+                        sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/')) + '/' + sourceMappingURL;
+                    this._get(sourceMappingURL).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
                         resolve(_newLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber));
