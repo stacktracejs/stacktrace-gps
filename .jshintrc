@@ -19,6 +19,7 @@
     "predef": {
         "ActiveXObject": false,
         "XDomainRequest": false,
+        "Promise": false,
         "StackFrame": false,
         "StackTraceGPS": false,
         "afterEach": false,

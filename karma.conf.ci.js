@@ -56,24 +56,24 @@ module.exports = function (config) {
             base: 'SauceLabs',
             browserName: 'opera'
         },
-        slIE11: {
-            base: 'SauceLabs',
-            browserName: 'internet explorer',
-            platform: 'Windows 8.1',
-            version: '11'
-        },
-        //slIE10: {
+        //slIE11: {
         //    base: 'SauceLabs',
         //    browserName: 'internet explorer',
-        //    platform: 'Windows 8',
-        //    version: '10'
+        //    platform: 'Windows 8.1',
+        //    version: '11'
         //},
-        slIE9: {
+        slIE10: {
             base: 'SauceLabs',
             browserName: 'internet explorer',
-            platform: 'Windows 7',
-            version: '9'
+            platform: 'Windows 8',
+            version: '10'
         }
+        //slIE9: {
+        //    base: 'SauceLabs',
+        //    browserName: 'internet explorer',
+        //    platform: 'Windows 7',
+        //    version: '9'
+        //}
     };
 
     config.set({

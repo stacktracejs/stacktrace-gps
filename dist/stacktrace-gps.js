@@ -2,16 +2,14 @@
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
     if (typeof define === 'function' && define.amd) {
-        define('stacktrace-gps', ['source-map', 'es6-promise', 'stackframe'], factory);
+        define('stacktrace-gps', ['source-map', 'stackframe'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('es6-promise'), require('stackframe'));
+        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('stackframe'));
     } else {
-        root.StackTraceGPS = factory(root.SourceMap, root.ES6Promise, root.StackFrame);
+        root.StackTraceGPS = factory(root.SourceMap, root.StackFrame);
     }
-}(this, function (SourceMap, ES6Promise, StackFrame) {
+}(this, function (SourceMap, StackFrame) {
     'use strict';
-    ES6Promise.polyfill();
-    var Promise = ES6Promise.Promise;
 
     /**
      * Create XHR or equivalent object for this environment.
@@ -150,17 +148,40 @@
 
         this.ajax = _xdr;
 
+        this._atob = function (input) {
+            if (window && window.atob) {
+                return window.atob(input);
+            } else if (typeof Buffer !== 'undefined') {
+                return new Buffer(input, 'base64').toString('utf-8');
+            }
+            throw new Error('No base64 decoder available');
+        };
+
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
+                var isDataUrl = location.substr(0, 5) === "data:";
                 if (this.sourceCache[location]) {
                     resolve(this.sourceCache[location]);
-                } else if (opts.offline) {
+                } else if (opts.offline && !isDataUrl) {
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
-                    this.ajax(location, function (source) {
-                        this.sourceCache[location] = source;
-                        resolve(source);
-                    }.bind(this), reject);
+                    if (isDataUrl) {
+                        var supportedEncoding = 'application/json;base64';
+                        if (location.substr(5, supportedEncoding.length) !== supportedEncoding) {
+                            reject(new Error('The encoding of the inline sourcemap is not supported'));
+                        } else {
+                            var sourceMapStart = 'data:'.length + supportedEncoding.length + ','.length;
+                            var encodedSource = location.substr(sourceMapStart);
+                            var source = this._atob(encodedSource);
+                            this.sourceCache[location] = source;
+                            resolve(source);
+                        }
+                    } else {
+                        this.ajax(location, function (source) {
+                            this.sourceCache[location] = source;
+                            resolve(source);
+                        }.bind(this), reject);
+                    }
                 }
             }.bind(this));
         };
@@ -216,8 +237,13 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
-                this._get(stackframe.fileName).then(function (source) {
-                    this._get(_findSourceMappingURL(source)).then(function (map) {
+                var fileName = stackframe.fileName;
+                this._get(fileName).then(function (source) {
+                    var sourceMappingURL = _findSourceMappingURL(source);
+                    if (sourceMappingURL[0] !== '/') {
+                        sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
+                    }
+                    this._get(sourceMappingURL).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
                         resolve(_newLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber));
