@@ -80,10 +80,7 @@ module.exports = function (config) {
         basePath: '',
         frameworks: ['jasmine', 'sinon'],
         files: [
-            'node_modules/stackframe/stackframe.js',
-            'build/source-map-consumer.js',
-            'node_modules/es6-promise/dist/es6-promise.js',
-            'stacktrace-gps.js',
+            'dist/stacktrace-gps-with-polyfills.min.js',
             'spec/*-spec.js'
         ],
         exclude: [],
@@ -91,10 +88,10 @@ module.exports = function (config) {
         colors: true,
         logLevel: config.LOG_INFO,
         autoWatch: true,
-        browserDisconnectTimeout : 10000,
-        browserDisconnectTolerance : 1,
-        browserNoActivityTimeout : 240000,
-        captureTimeout : 240000,
+        browserDisconnectTimeout: 10000,
+        browserDisconnectTolerance: 1,
+        browserNoActivityTimeout: 240000,
+        captureTimeout: 240000,
         sauceLabs: {
             testName: 'stacktrace-gps unit tests',
             recordScreenshots: false,

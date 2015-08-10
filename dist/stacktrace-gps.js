@@ -1,6 +1,8 @@
 (function (root, factory) {
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
+
+    /* istanbul ignore next */
     if (typeof define === 'function' && define.amd) {
         define('stacktrace-gps', ['source-map', 'stackframe'], factory);
     } else if (typeof exports === 'object') {
@@ -66,7 +68,7 @@
         var reFunctionExpression = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/;
         // {name} = eval()
         var reFunctionEvaluation = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/;
-        var lines = source.split("\n");
+        var lines = source.split('\n');
 
         // Walk backwards in the source lines until we find the line which matches one of the patterns above
         var code = '', line, maxLines = Math.min(lineNumber, 20), m, commentPos;
@@ -86,7 +88,6 @@
                 }
                 m = reFunctionDeclaration.exec(code);
                 if (m && m[1]) {
-                    //return m[1] + "(" + (m[2] || "") + ")";
                     return m[1];
                 }
                 m = reFunctionEvaluation.exec(code);
@@ -159,7 +160,7 @@
 
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
-                var isDataUrl = location.substr(0, 5) === "data:";
+                var isDataUrl = location.substr(0, 5) === 'data:';
                 if (this.sourceCache[location]) {
                     resolve(this.sourceCache[location]);
                 } else if (opts.offline && !isDataUrl) {
