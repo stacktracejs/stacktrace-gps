@@ -79,7 +79,7 @@ gulp.task('dist', ['copy', 'webpack-source-consumer'], function () {
 gulp.task('clean', del.bind(null, ['build', 'coverage', 'dist']));
 
 gulp.task('ci', ['lint', 'test-ci'], function () {
-    gulp.src('./coverage/Chrome*/lcov.info')
+    gulp.src('./coverage/**/lcov.info')
         .pipe(coveralls());
 });
 

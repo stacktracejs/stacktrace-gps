@@ -80,7 +80,11 @@ module.exports = function (config) {
         basePath: '',
         frameworks: ['jasmine', 'sinon'],
         files: [
-            'dist/stacktrace-gps-with-polyfills.min.js',
+            'node_modules/es6-promise/dist/es6-promise.js',
+            'polyfills.js',
+            'node_modules/stackframe/dist/stackframe.js',
+            'build/bundle.js',
+            'stacktrace-gps.js',
             'spec/*-spec.js'
         ],
         exclude: [],

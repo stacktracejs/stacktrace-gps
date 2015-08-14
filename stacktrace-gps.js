@@ -14,31 +14,6 @@
     'use strict';
 
     /**
-     * Create XHR or equivalent object for this environment.
-     * @returns XMLHttpRequest, XDomainRequest or ActiveXObject
-     * @private
-     */
-    function _createXMLHTTPObject() {
-        var xmlhttp;
-        var XMLHttpFactories = [
-            function () {
-                return new XMLHttpRequest();
-            }, function () {
-                return new ActiveXObject('Microsoft.XMLHTTP');
-            }
-        ];
-        for (var i = 0; i < XMLHttpFactories.length; i++) {
-            try {
-                xmlhttp = XMLHttpFactories[i]();
-                // Use memoization to cache the factory
-                _createXMLHTTPObject = XMLHttpFactories[i]; // jshint ignore:line
-                return xmlhttp;
-            } catch (e) {
-            }
-        }
-    }
-
-    /**
      * Make a X-Domain request to url and callback.
      *
      * @param url [String]
@@ -46,7 +21,7 @@
      * @param errback [Function] to callback on error
      */
     function _xdr(url, callback, errback) {
-        var req = _createXMLHTTPObject();
+        var req = new XMLHttpRequest();
         req.open('get', url);
         req.onerror = errback;
         req.onreadystatechange = function onreadystatechange() {
