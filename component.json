@@ -1,0 +1,19 @@
+{
+    "name": "stacktrace-gps",
+    "repository": "stacktracejs/stacktrace-gps",
+    "description": "Turns partial code location into precise code location",
+    "version": "2.2.0",
+    "keywords": [
+        "stacktrace",
+        "error",
+        "debugger"
+    ],
+    "main": "stacktrace-gps.js",
+    "scripts": [
+        "stacktrace-gps.js"
+    ],
+    "dependencies": {
+        "mozilla/source-map": "^0.1.43",
+        "stacktracejs/stackframe": "~0.3"
+    }
+}
