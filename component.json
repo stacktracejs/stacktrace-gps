@@ -13,7 +13,7 @@
         "stacktrace-gps.js"
     ],
     "dependencies": {
-        "mozilla/source-map": "^0.1.43",
-        "stacktracejs/stackframe": "~0.3"
+        "mozilla/source-map": "0.1.43",
+        "stacktracejs/stackframe": "0.3"
     }
 }
