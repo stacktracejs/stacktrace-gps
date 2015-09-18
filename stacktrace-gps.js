@@ -103,19 +103,19 @@
     }
 
     function _extractLocationInfoFromSourceMap(rawSourceMap, args, lineNumber, columnNumber, sourceCache) {
-        var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap)
+        var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
 
         var loc = mapConsumer.originalPositionFor({
           line: lineNumber,
           column: columnNumber
-        })
+        });
 
-        var mappedSource = mapConsumer.sourceContentFor(loc.source)
+        var mappedSource = mapConsumer.sourceContentFor(loc.source);
         if (mappedSource) {
-          sourceCache[loc.source] = mappedSource
+          sourceCache[loc.source] = mappedSource;
         }
 
-        return new StackFrame(loc.name, args, loc.source, loc.line, loc.column)
+        return new StackFrame(loc.name, args, loc.source, loc.line, loc.column);
     }
 
     /**
@@ -223,11 +223,11 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
-                var sourceCache = this.sourceCache
+                var sourceCache = this.sourceCache;
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function (source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
-                    var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:'
+                    var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl) {
                         sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
