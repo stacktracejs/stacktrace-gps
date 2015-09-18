@@ -216,7 +216,9 @@
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function (source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
-                    if (sourceMappingURL[0] !== '/') {
+                    var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:'
+
+                    if (sourceMappingURL[0] !== '/' && !isDataUrl) {
                         sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
                     }
                     this._get(sourceMappingURL).then(function (map) {
