@@ -6,37 +6,12 @@
     if (typeof define === 'function' && define.amd) {
         define('stacktrace-gps', ['source-map', 'stackframe'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('stackframe'));
+        module.exports = factory(require('source-map/lib/source-map-consumer'), require('stackframe'));
     } else {
         root.StackTraceGPS = factory(root.SourceMap, root.StackFrame);
     }
 }(this, function (SourceMap, StackFrame) {
     'use strict';
-
-    /**
-     * Create XHR or equivalent object for this environment.
-     * @returns XMLHttpRequest, XDomainRequest or ActiveXObject
-     * @private
-     */
-    function _createXMLHTTPObject() {
-        var xmlhttp;
-        var XMLHttpFactories = [
-            function () {
-                return new XMLHttpRequest();
-            }, function () {
-                return new ActiveXObject('Microsoft.XMLHTTP');
-            }
-        ];
-        for (var i = 0; i < XMLHttpFactories.length; i++) {
-            try {
-                xmlhttp = XMLHttpFactories[i]();
-                // Use memoization to cache the factory
-                _createXMLHTTPObject = XMLHttpFactories[i]; // jshint ignore:line
-                return xmlhttp;
-            } catch (e) {
-            }
-        }
-    }
 
     /**
      * Make a X-Domain request to url and callback.
@@ -46,7 +21,7 @@
      * @param errback [Function] to callback on error
      */
     function _xdr(url, callback, errback) {
-        var req = _createXMLHTTPObject();
+        var req = new XMLHttpRequest();
         req.open('get', url);
         req.onerror = errback;
         req.onreadystatechange = function onreadystatechange() {
@@ -127,9 +102,19 @@
         }
     }
 
-    function _newLocationInfoFromSourceMap(rawSourceMap, args, lineNumber, columnNumber) {
-        var loc = new SourceMap.SourceMapConsumer(rawSourceMap)
-            .originalPositionFor({line: lineNumber, column: columnNumber});
+    function _extractLocationInfoFromSourceMap(rawSourceMap, args, lineNumber, columnNumber, sourceCache) {
+        var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+
+        var loc = mapConsumer.originalPositionFor({
+          line: lineNumber,
+          column: columnNumber
+        });
+
+        var mappedSource = mapConsumer.sourceContentFor(loc.source);
+        if (mappedSource) {
+          sourceCache[loc.source] = mappedSource;
+        }
+
         return new StackFrame(loc.name, args, loc.source, loc.line, loc.column);
     }
 
@@ -238,16 +223,20 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
+                var sourceCache = this.sourceCache;
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function (source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
-                    if (sourceMappingURL[0] !== '/') {
+                    var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
+
+                    if (sourceMappingURL[0] !== '/' && !isDataUrl) {
                         sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
                     }
+
                     this._get(sourceMappingURL).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
-                        resolve(_newLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber));
+                        resolve(_extractLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber, sourceCache));
                     }, reject)['catch'](reject);
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));

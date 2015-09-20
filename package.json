@@ -6,7 +6,7 @@
         "Victor Homyakov <vkhomyackov@gmail.com> (https://github.com/victor-homyakov)",
         "Oliver Salzburg (https://github.com/oliversalzburg)"
     ],
-    "version": "2.2.0",
+    "version": "2.2.1",
     "license": "SEE LICENSE IN LICENSE",
     "keywords": [
         "stacktrace",
@@ -19,12 +19,12 @@
         "url": "git://github.com/stacktracejs/stacktrace-gps.git"
     },
     "dependencies": {
-        "source-map": "^0.1.43",
+        "source-map": "^0.5.0",
         "stackframe": "~0.3"
     },
     "devDependencies": {
         "colors": "^1.1.2",
-        "del": "^1.2.0",
+        "del": "^1.2.1",
         "es6-promise": "^3.0.2",
         "gulp": "^3.9.0",
         "gulp-concat": "^2.6.0",
@@ -32,7 +32,7 @@
         "gulp-jshint": "^1.11.2",
         "gulp-rename": "^1.2.2",
         "gulp-sourcemaps": "^1.5.2",
-        "gulp-uglify": "^1.2.0",
+        "gulp-uglify": "^1.4.1",
         "jasmine-node": "~1.14",
         "jasmine-sinon": "^0.4.0",
         "karma": "~0.12",
@@ -42,13 +42,13 @@
         "karma-ie-launcher": "^0.1.5",
         "karma-jasmine": "^0.1.6",
         "karma-opera-launcher": "^0.1.0",
-        "karma-phantomjs2-launcher": "^0.3.0",
+        "karma-phantomjs2-launcher": "^0.3.2",
         "karma-safari-launcher": "^0.1.1",
         "karma-sauce-launcher": "^0.2.10",
         "karma-sinon": "^1.0.3",
         "run-sequence": "^1.1.1",
-        "sinon": "^1.2.22",
-        "webpack": "^1.11.0"
+        "sinon": "^1.16.1",
+        "webpack": "^1.12.1"
     },
     "bugs": {
         "url": "https://github.com/stacktracejs/stacktrace-gps/issues"

@@ -8,12 +8,8 @@
         "error",
         "debugger"
     ],
-    "main": "stacktrace-gps.js",
+    "main": "dist/stacktrace-gps.min.js",
     "scripts": [
-        "stacktrace-gps.js"
-    ],
-    "dependencies": {
-        "mozilla/source-map": "0.1.43",
-        "stacktracejs/stackframe": "0.3"
-    }
+        "dist/stacktrace-gps.min.js"
+    ]
 }

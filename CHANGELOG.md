@@ -1,3 +1,10 @@
+## v2.2.1
+* Upgrade source-map dependency
+* Fix handling of webpack:// urls in source maps
+
+## v2.2.0
+* Add component(1) support
+
 ## v2.1.2
 * .pinpoint() resolves to source-mapped stackframe even if other analysis fails.
 * Fix stackframe dependency in CommonJS definition
