@@ -29,7 +29,7 @@ gulp.task('lint', function () {
 
 gulp.task('webpack-source-consumer', function () {
     return webpack({
-        entry: './node_modules/source-map/lib/source-map/source-map-consumer.js',
+        entry: './node_modules/source-map/lib/source-map-consumer.js',
         output: {
             library: 'SourceMap',
             path: path.join(__dirname, 'build'),

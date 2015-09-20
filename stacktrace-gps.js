@@ -6,7 +6,7 @@
     if (typeof define === 'function' && define.amd) {
         define('stacktrace-gps', ['source-map', 'stackframe'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('source-map/lib/source-map/source-map-consumer'), require('stackframe'));
+        module.exports = factory(require('source-map/lib/source-map-consumer'), require('stackframe'));
     } else {
         root.StackTraceGPS = factory(root.SourceMap, root.StackFrame);
     }
