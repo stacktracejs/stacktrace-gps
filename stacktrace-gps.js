@@ -102,9 +102,19 @@
         }
     }
 
-    function _newLocationInfoFromSourceMap(rawSourceMap, args, lineNumber, columnNumber) {
-        var loc = new SourceMap.SourceMapConsumer(rawSourceMap)
-            .originalPositionFor({line: lineNumber, column: columnNumber});
+    function _extractLocationInfoFromSourceMap(rawSourceMap, args, lineNumber, columnNumber, sourceCache) {
+        var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+
+        var loc = mapConsumer.originalPositionFor({
+          line: lineNumber,
+          column: columnNumber
+        });
+
+        var mappedSource = mapConsumer.sourceContentFor(loc.source);
+        if (mappedSource) {
+          sourceCache[loc.source] = mappedSource;
+        }
+
         return new StackFrame(loc.name, args, loc.source, loc.line, loc.column);
     }
 
@@ -213,16 +223,20 @@
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
+                var sourceCache = this.sourceCache;
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function (source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
-                    if (sourceMappingURL[0] !== '/') {
+                    var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
+
+                    if (sourceMappingURL[0] !== '/' && !isDataUrl) {
                         sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
                     }
+
                     this._get(sourceMappingURL).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
-                        resolve(_newLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber));
+                        resolve(_extractLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber, sourceCache));
                     }, reject)['catch'](reject);
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
