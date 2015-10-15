@@ -27,5 +27,9 @@
         "**/.*",
         "node_modules",
         "spec"
-    ]
+    ],
+    "dependencies": {
+        "source-map": "mozilla/source-map#0.5.1",
+        "stackframe": "~0.3.1"
+    }
 }
