@@ -17,23 +17,25 @@
      * Make a X-Domain request to url and callback.
      *
      * @param url [String]
-     * @param callback [Function] to callback on completion
-     * @param errback [Function] to callback on error
+     * @return Promise with response text if fulfilled
      */
-    function _xdr(url, callback, errback) {
-        var req = new XMLHttpRequest();
-        req.open('get', url);
-        req.onerror = errback;
-        req.onreadystatechange = function onreadystatechange() {
-            if (req.readyState === 4) {
-                if (req.status >= 200 && req.status < 400) {
-                    return callback(req.responseText);
-                } else {
-                    errback(new Error('Unable to retrieve ' + url));
+    function _xdr(url) {
+        return new Promise(function (resolve, reject) {
+            var req = new XMLHttpRequest();
+            req.open('get', url);
+            req.onerror = reject;
+            req.onreadystatechange = function onreadystatechange() {
+                if (req.readyState === 4) {
+                    if (req.status >= 200 && req.status < 300) {
+                        resolve(req.responseText);
+                    } else {
+                        reject(new Error('HTTP status: ' + req.status + ' retrieving ' + url));
+                    }
                 }
-            }
-        };
-        req.send();
+            };
+            req.send();
+        });
+
     }
 
     function _findFunctionName(source, lineNumber, columnNumber) {
@@ -106,13 +108,13 @@
         var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
 
         var loc = mapConsumer.originalPositionFor({
-          line: lineNumber,
-          column: columnNumber
+            line: lineNumber,
+            column: columnNumber
         });
 
         var mappedSource = mapConsumer.sourceContentFor(loc.source);
         if (mappedSource) {
-          sourceCache[loc.source] = mappedSource;
+            sourceCache[loc.source] = mappedSource;
         }
 
         return new StackFrame(loc.name, args, loc.source, loc.line, loc.column);
@@ -134,15 +136,6 @@
 
         this.ajax = _xdr;
 
-        this._atob = function (input) {
-            if (window && window.atob) {
-                return window.atob(input);
-            } else if (typeof Buffer !== 'undefined') {
-                return new Buffer(input, 'base64').toString('utf-8');
-            }
-            throw new Error('No base64 decoder available');
-        };
-
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
                 var isDataUrl = location.substr(0, 5) === 'data:';
@@ -158,15 +151,15 @@
                         } else {
                             var sourceMapStart = 'data:'.length + supportedEncoding.length + ','.length;
                             var encodedSource = location.substr(sourceMapStart);
-                            var source = this._atob(encodedSource);
+                            var source = window.atob(encodedSource);
                             this.sourceCache[location] = source;
                             resolve(source);
                         }
                     } else {
-                        this.ajax(location, function (source) {
-                            this.sourceCache[location] = source;
-                            resolve(source);
-                        }.bind(this), reject);
+                        var xhrPromise = this.ajax(location, {method: 'get'});
+                        // Cache the Promise to prevent duplicate in-flight requests
+                        this.sourceCache[location] = xhrPromise;
+                        xhrPromise.then(resolve, reject);
                     }
                 }
             }.bind(this));
@@ -207,7 +200,7 @@
                 this._get(stackframe.fileName).then(function getSourceCallback(source) {
                     var guessedFunctionName = _findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber);
                     resolve(new StackFrame(guessedFunctionName, stackframe.args, stackframe.fileName, stackframe.lineNumber, stackframe.columnNumber));
-                }, reject);
+                }, reject)['catch'](reject);
             }.bind(this));
         };
 

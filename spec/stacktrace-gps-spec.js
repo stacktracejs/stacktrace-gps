@@ -26,6 +26,24 @@ describe('StackTraceGPS', function () {
         server.restore();
     });
 
+    describe('#_get', function () {
+        it('avoids multiple in-flight network requests', function () {
+            runs(function() {
+                var stackTraceGPS = new StackTraceGPS();
+                stackTraceGPS._get('http://localhost:9999/test.min.js').then(callback, errback);
+                stackTraceGPS._get('http://localhost:9999/test.min.js').then(callback, errback);
+                stackTraceGPS._get('http://localhost:9999/test.min.js').then(callback, errback);
+                server.requests[0].respond(200, {}, 'OK');
+            });
+            waits(100);
+            runs(function() {
+                expect(server.requests.length).toBe(1);
+                expect(callback).toHaveBeenCalled();
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+    });
+
     describe('#findFunctionName', function () {
         it('rejects given non-object StackFrame', function () {
             runs(function() {
@@ -89,7 +107,7 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                expect(errback).toHaveBeenCalledWith(new Error('Unable to retrieve http://localhost:9999/file.js'));
+                expect(errback).toHaveBeenCalledWith(new Error('HTTP status: 404 retrieving http://localhost:9999/file.js'));
             });
         });
 
