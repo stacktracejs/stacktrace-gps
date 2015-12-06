@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('source-map/lib/source-map-consumer'), require('stackframe'));
     } else {
-        root.StackTraceGPS = factory(root.SourceMap, root.StackFrame);
+        root.StackTraceGPS = factory(root.SourceMap || root.sourceMap, root.StackFrame);
     }
 }(this, function (SourceMap, StackFrame) {
     'use strict';
