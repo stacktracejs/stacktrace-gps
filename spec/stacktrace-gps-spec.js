@@ -53,8 +53,7 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                // FIXME: fails in Safari 7.1
-                //expect(errback).toHaveBeenCalledWith(new TypeError('Given StackFrame is not an object'));
+                expect(errback.mostRecentCall.args[0].message).toEqual('Given StackFrame is not an object');
             });
         });
 
@@ -107,10 +106,11 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                expect(errback).toHaveBeenCalledWith(new Error('HTTP status: 404 retrieving http://localhost:9999/file.js'));
+                expect(errback.mostRecentCall.args[0].message).toEqual('HTTP status: 404 retrieving http://localhost:9999/file.js');
             });
         });
 
+        // Expected spy errback to have been called with [ { line : 123, column : 63, sourceURL : '/Users/ewendelin/src/stacktracejs/stacktrace-gps/spec/stacktrace-gps-spec.js' } ] but actual calls were [ { line : 9, column : 9351, sourceURL : '/Users/ewendelin/src/stacktracejs/stacktrace-gps/stacktrace-gps.js' } ]
         it('rejects in offline mode if sources not in source cache', function() {
             runs(function() {
                 var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
@@ -120,7 +120,7 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 expect(callback).not.toHaveBeenCalled();
                 expect(errback).toHaveBeenCalled();
-                expect(errback).toHaveBeenCalledWith(new Error('Cannot make network requests in offline mode'));
+                expect(errback.mostRecentCall.args[0].message).toEqual('Cannot make network requests in offline mode');
             });
         });
 
