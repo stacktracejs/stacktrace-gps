@@ -27,7 +27,7 @@ describe('StackTraceGPS', function () {
     });
 
     describe('#Constructor', function () {
-        it('allows for overriding the "ajax" function via the "ajax" option property', function () {
+        it('allows for overriding the "ajax" function via the "ajax" option', function () {
             runs(function() {
                 function ajax () {
                     return Promise.resolve('');
