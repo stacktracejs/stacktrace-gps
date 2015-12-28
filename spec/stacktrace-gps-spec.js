@@ -26,6 +26,23 @@ describe('StackTraceGPS', function () {
         server.restore();
     });
 
+    describe('#Constructor', function () {
+        it('allows for overriding the "ajax" function via the "ajax" option property', function () {
+            runs(function() {
+                function ajax () {
+                    return Promise.resolve('');
+                }
+                var stackTraceGPS = new StackTraceGPS({ajax: ajax});
+                stackTraceGPS._get('http://localhost:9999/test.min.js').then(callback, errback);
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalled();
+                expect(errback).not.toHaveBeenCalled();
+            });
+        });
+    });
+
     describe('#_get', function () {
         it('avoids multiple in-flight network requests', function () {
             runs(function() {
