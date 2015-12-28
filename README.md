@@ -41,6 +41,7 @@ https://raw.githubusercontent.com/stacktracejs/stacktrace-gps/master/dist/stackt
 options: Object
 * **sourceCache: Object (String URL => String Source)** - Pre-populate source cache to avoid network requests
 * **offline: Boolean (default false)** - Set to `true` to prevent all network requests
+* **ajax: Function (String URL => Promise(responseText))** - Function to be used for making X-Domain requests
  
 #### `.pinpoint(stackframe)` => Promise(StackFrame)
 Enhance function name and use source maps to produce a better StackFrame.
