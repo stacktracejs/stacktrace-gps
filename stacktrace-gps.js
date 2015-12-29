@@ -125,6 +125,7 @@
      *      opts.sourceCache = {url: "Source String"} => preload source cache
      *      opts.offline = True to prevent network requests.
      *              Best effort without sources or source maps.
+     *      opts.ajax = Promise returning function to make X-Domain requests
      */
     return function StackTraceGPS(opts) {
         if (!(this instanceof StackTraceGPS)) {
@@ -134,7 +135,7 @@
 
         this.sourceCache = opts.sourceCache || {};
 
-        this.ajax = _xdr;
+        this.ajax = opts.ajax || _xdr;
 
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
