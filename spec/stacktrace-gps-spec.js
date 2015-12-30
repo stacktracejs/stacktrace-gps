@@ -438,5 +438,33 @@ describe('StackTraceGPS', function () {
                 expect(errback).not.toHaveBeenCalled();
             });
         });
+
+        it('tolerates inline source maps with parameters set', function() {
+            runs(function() {
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
+                server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+
+                var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalledWith(new StackFrame('eval', [], 'test.js', 6, 10));
+                expect(errback).not.toHaveBeenCalled();
+            });
+
+        });
     });
 });
