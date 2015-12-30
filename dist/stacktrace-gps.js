@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('source-map/lib/source-map-consumer'), require('stackframe'));
     } else {
-        root.StackTraceGPS = factory(root.SourceMap, root.StackFrame);
+        root.StackTraceGPS = factory(root.SourceMap || root.sourceMap, root.StackFrame);
     }
 }(this, function (SourceMap, StackFrame) {
     'use strict';
@@ -35,6 +35,25 @@
             };
             req.send();
         });
+
+    }
+
+    /**
+     * Convert a Base64-encoded string into its original representation.
+     * Used for inline sourcemaps.
+     *
+     * @param b64str [String]
+     * @return The original representation of the base64-encoded string.
+     */
+    function _atob(b64str) {
+
+        if (window && window.atob) {
+            return window.atob(b64str);
+        } else if (Buffer) {
+            return new Buffer(b64str, 'base64').toString();
+        } else {
+            throw new Error('Cannot decode base64: no window.atob or Buffer');
+        }
 
     }
 
@@ -125,6 +144,7 @@
      *      opts.sourceCache = {url: "Source String"} => preload source cache
      *      opts.offline = True to prevent network requests.
      *              Best effort without sources or source maps.
+     *      opts.ajax = Promise returning function to make X-Domain requests
      */
     return function StackTraceGPS(opts) {
         if (!(this instanceof StackTraceGPS)) {
@@ -134,7 +154,9 @@
 
         this.sourceCache = opts.sourceCache || {};
 
-        this.ajax = _xdr;
+        this.ajax = opts.ajax || _xdr;
+
+        this._atob = opts.atob || _atob;
 
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
@@ -145,15 +167,19 @@
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
                     if (isDataUrl) {
-                        var supportedEncoding = 'application/json;base64';
-                        if (location.substr(5, supportedEncoding.length) !== supportedEncoding) {
-                            reject(new Error('The encoding of the inline sourcemap is not supported'));
-                        } else {
-                            var sourceMapStart = 'data:'.length + supportedEncoding.length + ','.length;
+                        // data URLs can have parameters.
+                        // see http://tools.ietf.org/html/rfc2397
+                        var supportedEncodingRegexp =
+                            /^data:application\/json;([\w=:"-]+;)*base64,/;
+                        var match = location.match(supportedEncodingRegexp);
+                        if (match) {
+                            var sourceMapStart = match[0].length;
                             var encodedSource = location.substr(sourceMapStart);
-                            var source = window.atob(encodedSource);
+                            var source = this._atob(encodedSource);
                             this.sourceCache[location] = source;
                             resolve(source);
+                        } else {
+                            reject(new Error('The encoding of the inline sourcemap is not supported'));
                         }
                     } else {
                         var xhrPromise = this.ajax(location, {method: 'get'});
