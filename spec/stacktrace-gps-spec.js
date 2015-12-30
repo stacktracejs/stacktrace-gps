@@ -438,5 +438,159 @@ describe('StackTraceGPS', function () {
                 expect(errback).not.toHaveBeenCalled();
             });
         });
+
+        it('uses window.atob for inline sourcemaps if available', function() {
+
+            var atobWasCalled;
+            var oldatob;
+            runs(function() {
+                atobWasCalled = false;
+                oldatob = window.atob;
+                window.atob = function() {
+                    atobWasCalled = true;
+                    oldatob.apply(this, arguments);
+                };
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
+                server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+
+                var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                window.atob = oldatob;
+                expect(atobWasCalled).toBe(true);
+            });
+        });
+
+        it('uses Buffer for inline sourcemaps if available', function() {
+
+            var oldatob;
+            var bufferWasCreated = false;
+
+            function Buffer(str, enc) {
+                bufferWasCreated = true;
+                expect(enc).toEqual('base64');
+                this._str = str;
+                this.toString = function() {
+                    return oldatob(this._str);
+                };
+            }
+
+            runs(function() {
+                oldatob = window.atob;
+                window.atob = null;
+                window.Buffer = Buffer;
+
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
+                server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+
+                var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                window.atob = oldatob;
+                window.Buffer = null;
+                expect(bufferWasCreated).toBe(true);
+            });
+
+        });
+
+        it('uses opts.atob if it was supplied in options', function() {
+
+            var atobspy;
+
+            runs(function() {
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
+                server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+
+                atobspy = jasmine.createSpy('atobspy').andCallFake(function(str) {
+                    return window.atob(str);
+                });
+
+                var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                new StackTraceGPS({
+                    atob: atobspy
+                }).pinpoint(stackframe)['catch'](callback);
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                expect(atobspy).toHaveBeenCalled();
+            });
+
+        });
+
+        it('errors if neither window.atob nor Buffer are available', function() {
+
+            var oldatob;
+            var bufferWasCreated = false;
+
+            runs(function() {
+                oldatob = window.atob;
+                window.atob = null;
+
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
+                server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+
+                var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                new StackTraceGPS().pinpoint(stackframe)['catch'](callback);
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                window.atob = oldatob;
+                expect(callback).toHaveBeenCalled();
+            });
+
+        });
+
     });
 });

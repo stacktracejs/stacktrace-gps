@@ -38,6 +38,25 @@
 
     }
 
+    /**
+     * Convert a Base64-encoded string into its original representation.
+     * Used for inline sourcemaps.
+     *
+     * @param b64str [String]
+     * @return The original representation of the base64-encoded string.
+     */
+    function _atob(b64str) {
+
+        if (window && window.atob) {
+            return window.atob(b64str);
+        } else if (Buffer) {
+            return new Buffer(b64str, 'base64').toString();
+        } else {
+            throw new Error('Cannot decode base64: no window.atob or Buffer');
+        }
+
+    }
+
     function _findFunctionName(source, lineNumber, columnNumber) {
         // function {name}({args}) m[1]=name m[2]=args
         var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
@@ -137,6 +156,8 @@
 
         this.ajax = opts.ajax || _xdr;
 
+        this._atob = opts.atob || _atob;
+
         this._get = function _get(location) {
             return new Promise(function (resolve, reject) {
                 var isDataUrl = location.substr(0, 5) === 'data:';
@@ -152,7 +173,7 @@
                         } else {
                             var sourceMapStart = 'data:'.length + supportedEncoding.length + ','.length;
                             var encodedSource = location.substr(sourceMapStart);
-                            var source = window.atob(encodedSource);
+                            var source = this._atob(encodedSource);
                             this.sourceCache[location] = source;
                             resolve(source);
                         }

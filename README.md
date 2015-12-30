@@ -42,6 +42,7 @@ options: Object
 * **sourceCache: Object (String URL => String Source)** - Pre-populate source cache to avoid network requests
 * **offline: Boolean (default false)** - Set to `true` to prevent all network requests
 * **ajax: Function (String URL => Promise(responseText))** - Function to be used for making X-Domain requests
+* **atob: Function (String => String)** - Function to convert base64-encoded strings to their original representation
  
 #### `.pinpoint(stackframe)` => Promise(StackFrame)
 Enhance function name and use source maps to produce a better StackFrame.
