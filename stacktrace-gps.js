@@ -46,15 +46,11 @@
      * @return The original representation of the base64-encoded string.
      */
     function _atob(b64str) {
-
-        if (window && window.atob) {
+        if (typeof window !== 'undefined' && window.atob) {
             return window.atob(b64str);
-        } else if (Buffer) {
-            return new Buffer(b64str, 'base64').toString();
         } else {
-            throw new Error('Cannot decode base64: no window.atob or Buffer');
+            throw new Error('You must supply a polyfill for window.atob in this environment');
         }
-
     }
 
     function _findFunctionName(source, lineNumber, columnNumber) {
