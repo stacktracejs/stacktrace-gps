@@ -441,15 +441,12 @@ describe('StackTraceGPS', function () {
 
         it('uses window.atob for inline sourcemaps if available', function() {
 
-            var atobWasCalled;
             var oldatob;
             runs(function() {
-                atobWasCalled = false;
                 oldatob = window.atob;
-                window.atob = function() {
-                    atobWasCalled = true;
-                    oldatob.apply(this, arguments);
-                };
+                window.atob = jasmine.createSpy('fakeatob').andCallFake(function(string) {
+                    return oldatob(string);
+                });
                 var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
                 server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
 
@@ -470,8 +467,8 @@ describe('StackTraceGPS', function () {
             });
             waits(100);
             runs(function() {
+                expect(window.atob).toHaveBeenCalled();
                 window.atob = oldatob;
-                expect(atobWasCalled).toBe(true);
             });
         });
 
@@ -481,6 +478,7 @@ describe('StackTraceGPS', function () {
             var bufferWasCreated = false;
 
             function Buffer(str, enc) {
+
                 bufferWasCreated = true;
                 expect(enc).toEqual('base64');
                 this._str = str;
@@ -490,6 +488,7 @@ describe('StackTraceGPS', function () {
             }
 
             runs(function() {
+
                 oldatob = window.atob;
                 window.atob = null;
                 window.Buffer = Buffer;
@@ -499,6 +498,7 @@ describe('StackTraceGPS', function () {
 
                 var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
                 new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
+
             });
             waits(100);
             runs(function() {
@@ -588,6 +588,36 @@ describe('StackTraceGPS', function () {
             runs(function() {
                 window.atob = oldatob;
                 expect(callback).toHaveBeenCalled();
+            });
+
+        });
+
+        it('tolerates inline source maps with parameters set', function() {
+
+            runs(function() {
+                var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
+                server.respondWith('GET', 'test.min.js', [200, { 'Content-Type': 'application/x-javascript' }, sourceMin]);
+
+                var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                new StackTraceGPS().pinpoint(stackframe).then(callback, errback)['catch'](debugErrback);
+            });
+
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                server.respond();
+            });
+            waits(100);
+            runs(function() {
+                expect(callback).toHaveBeenCalledWith(new StackFrame('eval', [], 'test.js', 6, 10));
+                expect(errback).not.toHaveBeenCalled();
             });
 
         });

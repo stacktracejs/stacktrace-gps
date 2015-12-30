@@ -167,15 +167,19 @@
                     reject(new Error('Cannot make network requests in offline mode'));
                 } else {
                     if (isDataUrl) {
-                        var supportedEncoding = 'application/json;base64';
-                        if (location.substr(5, supportedEncoding.length) !== supportedEncoding) {
-                            reject(new Error('The encoding of the inline sourcemap is not supported'));
-                        } else {
-                            var sourceMapStart = 'data:'.length + supportedEncoding.length + ','.length;
+                        // data URLs can have parameters.
+                        // see http://tools.ietf.org/html/rfc2397
+                        var supportedEncodingRegexp =
+                            /^data:application\/json;([\w=:"-]+;)*base64,/;
+                        var match = location.match(supportedEncodingRegexp);
+                        if (match) {
+                            var sourceMapStart = match[0].length;
                             var encodedSource = location.substr(sourceMapStart);
                             var source = this._atob(encodedSource);
                             this.sourceCache[location] = source;
                             resolve(source);
+                        } else {
+                            reject(new Error('The encoding of the inline sourcemap is not supported'));
                         }
                     } else {
                         var xhrPromise = this.ajax(location, {method: 'get'});
