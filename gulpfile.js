@@ -3,7 +3,7 @@ var coveralls = require('gulp-coveralls');
 var del = require('del');
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
-var karma = require('karma').server;
+var karma = require('karma');
 var path = require('path');
 var runSequence = require('run-sequence');
 var sourcemaps = require('gulp-sourcemaps');
@@ -41,17 +41,25 @@ gulp.task('webpack-source-consumer', function () {
 });
 
 gulp.task('test', ['webpack-source-consumer'], function (done) {
-    karma.start({
+    new karma.Server({
         configFile: __dirname + '/karma.conf.js',
         singleRun: true
-    }, done);
+    }, done).start();
 });
 
-gulp.task('test-ci', ['copy', 'dist'], function (done) {
-    karma.start({
+gulp.task('test-pr', ['dist'], function (done) {
+    new karma.Server({
+        configFile: __dirname + '/karma.conf.js',
+        browsers: ['Firefox', 'Chrome'],
+        singleRun: true
+    }, done).start();
+});
+
+gulp.task('test-ci', ['dist'], function (done) {
+    new karma.Server({
         configFile: __dirname + '/karma.conf.ci.js',
         singleRun: true
-    }, done);
+    }, done).start();
 });
 
 gulp.task('copy', function () {
@@ -77,6 +85,8 @@ gulp.task('dist', ['copy', 'webpack-source-consumer'], function () {
 });
 
 gulp.task('clean', del.bind(null, ['build', 'coverage', 'dist']));
+
+gulp.task('pr', ['lint', 'test-pr']);
 
 gulp.task('ci', ['lint', 'test-ci'], function () {
     gulp.src('./coverage/**/lcov.info')
