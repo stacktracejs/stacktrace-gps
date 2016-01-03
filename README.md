@@ -57,16 +57,10 @@ Enhance function name and use source maps to produce a better StackFrame.
 * **stackframe** - [StackFrame](https://github.com/stacktracejs/stackframe) or like object
 
 ## Browser Support
+[![Sauce Test Status](https://saucelabs.com/browser-matrix/stacktracejs.svg)](https://saucelabs.com/u/stacktracejs)
+
 Functions that rely on [Source Maps](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/)
 (`pinpoint` and `getMappedLocation`) require recent browsers:
-
-* Chrome 20+
-* Firefox 23+
-* Safari 8+
-* Opera 24+
-* IE 9+
-* iOS 7+
-* Android 4.2+
 
 ## Contributing
 Want to be listed as a *Contributor*? Start with the [Contributing Guide](CONTRIBUTING.md)!
