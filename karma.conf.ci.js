@@ -18,7 +18,7 @@ module.exports = function (config) {
             base: 'SauceLabs',
             browserName: 'iPhone',
             platform: 'OS X 10.10',
-            version: '9.0'
+            version: '9.2'
         },
         slAndroid4: {
             base: 'SauceLabs',
@@ -50,7 +50,7 @@ module.exports = function (config) {
             base: 'SauceLabs',
             browserName: 'firefox',
             platform: 'OS X 10.9',
-            version: '42.0'
+            version: '43.0'
         },
         slFirefoxDev: {
             base: 'SauceLabs',
@@ -143,7 +143,7 @@ module.exports = function (config) {
         },
         customLaunchers: customLaunchers,
         browsers: Object.keys(customLaunchers),
-        reporters: ['progress', 'saucelabs', 'coverage'],
+        reporters: ['dots', 'saucelabs', 'coverage'],
         preprocessors: {
             'stacktrace-gps.js': 'coverage'
         },
