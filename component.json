@@ -2,7 +2,7 @@
     "name": "stacktrace-gps",
     "repository": "stacktracejs/stacktrace-gps",
     "description": "Turns partial code location into precise code location",
-    "version": "2.2.0",
+    "version": "2.4.0",
     "keywords": [
         "stacktrace",
         "error",
