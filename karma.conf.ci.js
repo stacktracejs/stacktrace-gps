@@ -17,7 +17,7 @@ module.exports = function (config) {
         slIOS9: {
             base: 'SauceLabs',
             browserName: 'iPhone',
-            platform: 'OS X 10.10',
+            platform: 'OS X 10.11',
             version: '9.2'
         },
         slAndroid4: {
@@ -115,7 +115,7 @@ module.exports = function (config) {
 
     config.set({
         basePath: '',
-        frameworks: ['jasmine', 'sinon'],
+        frameworks: ['jasmine-ajax', 'jasmine'],
         files: [
             'node_modules/es6-promise/dist/es6-promise.js',
             'polyfills.js',
