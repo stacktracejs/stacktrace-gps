@@ -53,6 +53,14 @@
         }
     }
 
+    function _parseJson(string) {
+        if (typeof JSON !== 'undefined' && JSON.parse) {
+            return JSON.parse(string);
+        } else {
+            throw new Error('You must supply a polyfill for JSON.parse in this environment');
+        }
+    }
+
     function _findFunctionName(source, lineNumber, columnNumber) {
         // function {name}({args}) m[1]=name m[2]=args
         var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
@@ -243,14 +251,24 @@
                 this._get(fileName).then(function (source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
                     var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
+                    var base = fileName.substring(0, fileName.lastIndexOf('/') + 1);
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
-                        sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
+                        sourceMappingURL = base + sourceMappingURL;
                     }
 
                     this._get(sourceMappingURL).then(function (map) {
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
+
+                        if (typeof map === 'string') {
+                            map = _parseJson(map.replace(/^\)\]\}'/, ''));
+                        }
+
+                        if (typeof map.sourceRoot === 'undefined') {
+                            map.sourceRoot = base;
+                        }
+
                         resolve(_extractLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber, sourceCache));
                     }, reject)['catch'](reject);
                 }.bind(this), reject)['catch'](reject);
