@@ -256,7 +256,7 @@ describe('StackTraceGPS', function () {
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('foo', [], 'test.js', 1, 4));
+                    expect(stackframe).toEqual(new StackFrame('foo', [], 'http://localhost:9999/test.js', 1, 4));
                     done();
                 }
             });
@@ -266,7 +266,7 @@ describe('StackTraceGPS', function () {
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('bar', [], 'test.js', 2, 9));
+                    expect(stackframe).toEqual(new StackFrame('bar', [], 'http://localhost:9999/test.js', 2, 9));
                     done();
                 }
             });
@@ -276,7 +276,7 @@ describe('StackTraceGPS', function () {
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('eval', [], 'test.js', 3, 10));
+                    expect(stackframe).toEqual(new StackFrame('eval', [], 'http://localhost:9999/test.js', 3, 10));
                     done();
                 }
             });
