@@ -1,4 +1,4 @@
-module.exports = function (config) {
+module.exports = function(config) {
     'use strict';
     if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
         console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.');
@@ -90,20 +90,6 @@ module.exports = function (config) {
             browserName: 'internet explorer',
             platform: 'Windows 8',
             version: '10'
-        },
-        slIE9: {
-            base: 'SauceLabs',
-            browserName: 'internet explorer',
-            platform: 'Windows 8',
-            version: '10',
-            'x-ua-compatible': 'IE=EmulateIE9'
-        },
-        slIE8: {
-            base: 'SauceLabs',
-            browserName: 'internet explorer',
-            platform: 'Windows 8',
-            version: '10',
-            'x-ua-compatible': 'IE=EmulateIE8'
         }
         //slIE9: {
         //    base: 'SauceLabs',

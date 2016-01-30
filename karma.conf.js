@@ -1,4 +1,4 @@
-module.exports = function (config) {
+module.exports = function(config) {
     config.set({
         basePath: '',
         frameworks: ['jasmine-ajax', 'jasmine'],
@@ -15,7 +15,7 @@ module.exports = function (config) {
         logLevel: config.LOG_INFO,
         autoWatch: true,
         customLaunchers: {
-            Chrome_Travis: {
+            ChromeTravis: {
                 base: 'Chrome',
                 flags: ['--no-sandbox']
             }
