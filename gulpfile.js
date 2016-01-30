@@ -20,14 +20,14 @@ var dependencies = [
 ];
 var source = 'stacktrace-gps.js';
 
-gulp.task('lint', function () {
+gulp.task('lint', function() {
     return gulp.src(source)
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(jshint.reporter('fail'));
 });
 
-gulp.task('webpack-source-consumer', function () {
+gulp.task('webpack-source-consumer', function() {
     return webpack({
         entry: './node_modules/source-map/lib/source-map-consumer.js',
         output: {
@@ -35,39 +35,41 @@ gulp.task('webpack-source-consumer', function () {
             path: path.join(__dirname, 'build'),
             name: 'bundle.js'
         }
-    }, function (err) {
-        if (err) throw new Error('webpack', err);
+    }, function(err) {
+        if (err) {
+            throw new Error('webpack', err);
+        }
     });
 });
 
-gulp.task('test', ['webpack-source-consumer'], function (done) {
+gulp.task('test', ['webpack-source-consumer'], function(done) {
     new karma.Server({
         configFile: __dirname + '/karma.conf.js',
         singleRun: true
     }, done).start();
 });
 
-gulp.task('test-pr', ['dist'], function (done) {
+gulp.task('test-pr', ['dist'], function(done) {
     new karma.Server({
         configFile: __dirname + '/karma.conf.js',
-        browsers: ['Firefox', 'Chrome_Travis'],
+        browsers: ['Firefox', 'ChromeTravis'],
         singleRun: true
     }, done).start();
 });
 
-gulp.task('test-ci', ['dist'], function (done) {
+gulp.task('test-ci', ['dist'], function(done) {
     new karma.Server({
         configFile: __dirname + '/karma.conf.ci.js',
         singleRun: true
     }, done).start();
 });
 
-gulp.task('copy', function () {
+gulp.task('copy', function() {
     return gulp.src(source)
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('dist', ['copy', 'webpack-source-consumer'], function () {
+gulp.task('dist', ['copy', 'webpack-source-consumer'], function() {
     // Build with ES6Promise and other polyfills
     gulp.src(polyfills.concat(dependencies.concat(source)))
         .pipe(sourcemaps.init())
@@ -88,11 +90,11 @@ gulp.task('clean', del.bind(null, ['build', 'coverage', 'dist']));
 
 gulp.task('pr', ['lint', 'test-pr']);
 
-gulp.task('ci', ['lint', 'test-ci'], function () {
+gulp.task('ci', ['lint', 'test-ci'], function() {
     gulp.src('./coverage/**/lcov.info')
         .pipe(coveralls());
 });
 
-gulp.task('default', ['clean'], function (cb) {
+gulp.task('default', ['clean'], function(cb) {
     runSequence('lint', ['copy', 'dist'], 'test', cb);
 });
