@@ -1,69 +1,69 @@
 {
-    "name": "stacktrace-gps",
-    "description": "Turns partial code location into precise code location",
-    "maintainers": [
-        "Eric Wendelin <me@eriwen.com> (http://www.eriwen.com)",
-        "Victor Homyakov <vkhomyackov@gmail.com> (https://github.com/victor-homyakov)",
-        "Oliver Salzburg (https://github.com/oliversalzburg)"
-    ],
-    "version": "2.4.0",
-    "license": "Unlicense",
-    "keywords": [
-        "stacktrace",
-        "error",
-        "debugger"
-    ],
-    "homepage": "https://www.stacktracejs.com",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/stacktracejs/stacktrace-gps.git"
-    },
-    "dependencies": {
-        "source-map": "^0.5.1",
-        "stackframe": "~0.3"
-    },
-    "devDependencies": {
-        "colors": "^1.1.2",
-        "del": "^2.2.0",
-        "es6-promise": "^3.0.2",
-        "gulp": "^3.9.0",
-        "gulp-concat": "^2.6.0",
-        "gulp-coveralls": "^0.1.4",
-        "gulp-jshint": "^2.0.0",
-        "gulp-rename": "^1.2.2",
-        "gulp-sourcemaps": "^1.6.0",
-        "gulp-uglify": "^1.5.1",
-        "jasmine": "^2.4.1",
-        "jasmine-ajax": "^3.2.0",
-        "jasmine-core": "^2.4.1",
-        "jshint": "^2.8.0",
-        "karma": "^0.13.16",
-        "karma-chrome-launcher": "^0.2.2",
-        "karma-coverage": "^0.5.3",
-        "karma-firefox-launcher": "^0.1.7",
-        "karma-ie-launcher": "^0.2.0",
-        "karma-jasmine": "^0.3.6",
-        "karma-jasmine-ajax": "^0.1.13",
-        "karma-opera-launcher": "^0.3.0",
-        "karma-phantomjs2-launcher": "^0.4.0",
-        "karma-safari-launcher": "^0.1.1",
-        "karma-sauce-launcher": "^0.2.10",
-        "karma-spec-reporter": "0.0.23",
-        "run-sequence": "^1.1.4",
-        "webpack": "^1.12.9"
-    },
-    "bugs": {
-        "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
-    },
-    "main": "./stacktrace-gps.js",
-    "files": [
-        "LICENSE",
-        "README.md",
-        "stacktrace-gps.js",
-        "dist/",
-        "node_modules/source-map/"
-    ],
-    "scripts": {
-        "test": "gulp test"
-    }
+  "name": "stacktrace-gps",
+  "description": "Turns partial code location into precise code location",
+  "maintainers": [
+    "Eric Wendelin <me@eriwen.com> (http://www.eriwen.com)",
+    "Victor Homyakov <vkhomyackov@gmail.com> (https://github.com/victor-homyakov)",
+    "Oliver Salzburg (https://github.com/oliversalzburg)"
+  ],
+  "version": "2.4.1",
+  "license": "Unlicense",
+  "keywords": [
+    "stacktrace",
+    "error",
+    "debugger"
+  ],
+  "homepage": "https://www.stacktracejs.com",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stacktracejs/stacktrace-gps.git"
+  },
+  "dependencies": {
+    "source-map": "^0.5.1",
+    "stackframe": "~0.3"
+  },
+  "devDependencies": {
+    "colors": "^1.1.2",
+    "del": "^2.2.0",
+    "es6-promise": "^3.0.2",
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-coveralls": "^0.1.4",
+    "gulp-jshint": "^2.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-uglify": "^1.5.1",
+    "jasmine": "^2.4.1",
+    "jasmine-ajax": "^3.2.0",
+    "jasmine-core": "^2.4.1",
+    "jshint": "^2.8.0",
+    "karma": "^0.13.16",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-coverage": "^0.5.3",
+    "karma-firefox-launcher": "^0.1.7",
+    "karma-ie-launcher": "^0.2.0",
+    "karma-jasmine": "^0.3.6",
+    "karma-jasmine-ajax": "^0.1.13",
+    "karma-opera-launcher": "^0.3.0",
+    "karma-phantomjs2-launcher": "^0.4.0",
+    "karma-safari-launcher": "^0.1.1",
+    "karma-sauce-launcher": "^0.2.10",
+    "karma-spec-reporter": "0.0.23",
+    "run-sequence": "^1.1.4",
+    "webpack": "^1.12.9"
+  },
+  "bugs": {
+    "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
+  },
+  "main": "./stacktrace-gps.js",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "stacktrace-gps.js",
+    "dist/",
+    "node_modules/source-map/"
+  ],
+  "scripts": {
+    "test": "gulp test"
+  }
 }
