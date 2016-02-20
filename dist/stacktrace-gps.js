@@ -1,4 +1,4 @@
-(function (root, factory) {
+(function(root, factory) {
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
 
@@ -10,17 +10,17 @@
     } else {
         root.StackTraceGPS = factory(root.SourceMap || root.sourceMap, root.StackFrame);
     }
-}(this, function (SourceMap, StackFrame) {
+}(this, function(SourceMap, StackFrame) {
     'use strict';
 
     /**
      * Make a X-Domain request to url and callback.
      *
-     * @param url [String]
-     * @return Promise with response text if fulfilled
+     * @param {String} url
+     * @returns {Promise} with response text if fulfilled
      */
     function _xdr(url) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             var req = new XMLHttpRequest();
             req.open('get', url);
             req.onerror = reject;
@@ -42,8 +42,8 @@
      * Convert a Base64-encoded string into its original representation.
      * Used for inline sourcemaps.
      *
-     * @param b64str [String]
-     * @return The original representation of the base64-encoded string.
+     * @param {String} b64str Base-64 encoded string
+     * @returns {String} original representation of the base64-encoded string.
      */
     function _atob(b64str) {
         if (typeof window !== 'undefined' && window.atob) {
@@ -53,7 +53,15 @@
         }
     }
 
-    function _findFunctionName(source, lineNumber, columnNumber) {
+    function _parseJson(string) {
+        if (typeof JSON !== 'undefined' && JSON.parse) {
+            return JSON.parse(string);
+        } else {
+            throw new Error('You must supply a polyfill for JSON.parse in this environment');
+        }
+    }
+
+    function _findFunctionName(source, lineNumber/*, columnNumber*/) {
         // function {name}({args}) m[1]=name m[2]=args
         var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
         // {name} = function ({args}) TODO args capture
@@ -63,11 +71,13 @@
         var lines = source.split('\n');
 
         // Walk backwards in the source lines until we find the line which matches one of the patterns above
-        var code = '', line, maxLines = Math.min(lineNumber, 20), m, commentPos;
+        var code = '';
+        var maxLines = Math.min(lineNumber, 20);
+        var m;
         for (var i = 0; i < maxLines; ++i) {
             // lineNo is 1-based, source[] is 0-based
-            line = lines[lineNumber - i - 1];
-            commentPos = line.indexOf('//');
+            var line = lines[lineNumber - i - 1];
+            var commentPos = line.indexOf('//');
             if (commentPos >= 0) {
                 line = line.substr(0, commentPos);
             }
@@ -102,9 +112,13 @@
             throw new TypeError('Given StackFrame is not an object');
         } else if (typeof stackframe.fileName !== 'string') {
             throw new TypeError('Given file name is not a String');
-        } else if (typeof stackframe.lineNumber !== 'number' || stackframe.lineNumber % 1 !== 0 || stackframe.lineNumber < 1) {
+        } else if (typeof stackframe.lineNumber !== 'number' ||
+                stackframe.lineNumber % 1 !== 0 ||
+                stackframe.lineNumber < 1) {
             throw new TypeError('Given line number must be a positive integer');
-        } else if (typeof stackframe.columnNumber !== 'number' || stackframe.columnNumber % 1 !== 0 || stackframe.columnNumber < 0) {
+        } else if (typeof stackframe.columnNumber !== 'number' ||
+                stackframe.columnNumber % 1 !== 0 ||
+                stackframe.columnNumber < 0) {
             throw new TypeError('Given column number must be a non-negative integer');
         }
         return true;
@@ -136,7 +150,8 @@
     }
 
     /**
-     * @param opts: [Object] options.
+     * @constructor
+     * @param {Object} opts
      *      opts.sourceCache = {url: "Source String"} => preload source cache
      *      opts.offline = True to prevent network requests.
      *              Best effort without sources or source maps.
@@ -155,7 +170,7 @@
         this._atob = opts.atob || _atob;
 
         this._get = function _get(location) {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function(resolve, reject) {
                 var isDataUrl = location.substr(0, 5) === 'data:';
                 if (this.sourceCache[location]) {
                     resolve(this.sourceCache[location]);
@@ -191,13 +206,12 @@
          * Given a StackFrame, enhance function name and use source maps for a
          * better StackFrame.
          *
-         * @param stackframe - {StackFrame}-like object
-         *      {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5}
-         * @return StackFrame with source-mapped location
+         * @param {StackFrame} stackframe object
+         * @returns {Promise} that resolves with with source-mapped StackFrame
          */
         this.pinpoint = function StackTraceGPS$$pinpoint(stackframe) {
-            return new Promise(function (resolve, reject) {
-                this.getMappedLocation(stackframe).then(function (mappedStackFrame) {
+            return new Promise(function(resolve, reject) {
+                this.getMappedLocation(stackframe).then(function(mappedStackFrame) {
                     function resolveMappedStackFrame() {
                         resolve(mappedStackFrame);
                     }
@@ -212,16 +226,19 @@
         /**
          * Given a StackFrame, guess function name from location information.
          *
-         * @param stackframe - {StackFrame}-like object
-         *      {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5}
-         * @return StackFrame with guessed function name
+         * @param {StackFrame} stackframe
+         * @returns {Promise} that resolves with enhanced StackFrame.
          */
         this.findFunctionName = function StackTraceGPS$$findFunctionName(stackframe) {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function(resolve, reject) {
                 _ensureStackFrameIsLegit(stackframe);
                 this._get(stackframe.fileName).then(function getSourceCallback(source) {
                     var guessedFunctionName = _findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber);
-                    resolve(new StackFrame(guessedFunctionName, stackframe.args, stackframe.fileName, stackframe.lineNumber, stackframe.columnNumber));
+                    resolve(new StackFrame(guessedFunctionName,
+                        stackframe.args,
+                        stackframe.fileName,
+                        stackframe.lineNumber,
+                        stackframe.columnNumber));
                 }, reject)['catch'](reject);
             }.bind(this));
         };
@@ -229,29 +246,38 @@
         /**
          * Given a StackFrame, seek source-mapped location and return new enhanced StackFrame.
          *
-         * @param stackframe - {StackFrame}-like object
-         *      {fileName: 'path/to/file.js', lineNumber: 100, columnNumber: 5}
-         * @return StackFrame with source-mapped location
+         * @param {StackFrame} stackframe
+         * @returns {Promise} that resolves with enhanced StackFrame.
          */
         this.getMappedLocation = function StackTraceGPS$$getMappedLocation(stackframe) {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function(resolve, reject) {
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
                 var sourceCache = this.sourceCache;
                 var fileName = stackframe.fileName;
-                this._get(fileName).then(function (source) {
+                this._get(fileName).then(function(source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
                     var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
+                    var base = fileName.substring(0, fileName.lastIndexOf('/') + 1);
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
-                        sourceMappingURL = fileName.substring(0, fileName.lastIndexOf('/') + 1) + sourceMappingURL;
+                        sourceMappingURL = base + sourceMappingURL;
                     }
 
-                    this._get(sourceMappingURL).then(function (map) {
-                        var lineNumber = stackframe.lineNumber;
-                        var columnNumber = stackframe.columnNumber;
-                        resolve(_extractLocationInfoFromSourceMap(map, stackframe.args, lineNumber, columnNumber, sourceCache));
+                    this._get(sourceMappingURL).then(function(map) {
+                        var line = stackframe.lineNumber;
+                        var column = stackframe.columnNumber;
+
+                        if (typeof map === 'string') {
+                            map = _parseJson(map.replace(/^\)\]\}'/, ''));
+                        }
+
+                        if (typeof map.sourceRoot === 'undefined') {
+                            map.sourceRoot = base;
+                        }
+
+                        resolve(_extractLocationInfoFromSourceMap(map, stackframe.args, line, column, sourceCache));
                     }, reject)['catch'](reject);
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
