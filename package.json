@@ -19,7 +19,7 @@
     "url": "git://github.com/stacktracejs/stacktrace-gps.git"
   },
   "dependencies": {
-    "source-map": "^0.5.1",
+    "source-map": "0.5.6",
     "stackframe": "~0.3"
   },
   "devDependencies": {
