@@ -149,6 +149,17 @@ describe('StackTraceGPS', function() {
             }
         });
 
+        it('does not replace non-anonymous function name with anonymous', function(done) {
+            jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({status: 200});
+            var originalStackFrame = new StackFrame('foo', [], 'http://localhost:9999/file.js', 1, 0);
+            new StackTraceGPS().findFunctionName(originalStackFrame).then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe).toEqual(originalStackFrame);
+                done();
+            }
+        });
+
         it('caches subsequent requests to the same location', function(done) {
             var unit = new StackTraceGPS();
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';

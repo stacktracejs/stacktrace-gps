@@ -233,12 +233,19 @@
             return new Promise(function(resolve, reject) {
                 _ensureStackFrameIsLegit(stackframe);
                 this._get(stackframe.fileName).then(function getSourceCallback(source) {
-                    var guessedFunctionName = _findFunctionName(source, stackframe.lineNumber, stackframe.columnNumber);
-                    resolve(new StackFrame(guessedFunctionName,
-                        stackframe.args,
-                        stackframe.fileName,
-                        stackframe.lineNumber,
-                        stackframe.columnNumber));
+                    var lineNumber = stackframe.lineNumber;
+                    var columnNumber = stackframe.columnNumber;
+                    var guessedFunctionName = _findFunctionName(source, lineNumber, columnNumber);
+                    // Only replace functionName if we found something
+                    if (guessedFunctionName) {
+                        resolve(new StackFrame(guessedFunctionName,
+                            stackframe.args,
+                            stackframe.fileName,
+                            lineNumber,
+                            columnNumber));
+                    } else {
+                        resolve(stackframe);
+                    }
                 }, reject)['catch'](reject);
             }.bind(this));
         };
