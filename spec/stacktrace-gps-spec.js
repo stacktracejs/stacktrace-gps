@@ -292,6 +292,16 @@ describe('StackTraceGPS', function() {
                     done();
                 }
             });
+
+            it('does not replace non-empty functionName with empty value', function(done) {
+                var stackframe = new StackFrame('foo', [], 'http://localhost:9999/test.min.js', 2000, 4200);
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
+
+                function callback(stackframe) {
+                    expect(stackframe).toEqual(stackframe);
+                    done();
+                }
+            });
         });
     });
 

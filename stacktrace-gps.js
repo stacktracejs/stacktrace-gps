@@ -113,12 +113,12 @@
         } else if (typeof stackframe.fileName !== 'string') {
             throw new TypeError('Given file name is not a String');
         } else if (typeof stackframe.lineNumber !== 'number' ||
-                stackframe.lineNumber % 1 !== 0 ||
-                stackframe.lineNumber < 1) {
+            stackframe.lineNumber % 1 !== 0 ||
+            stackframe.lineNumber < 1) {
             throw new TypeError('Given line number must be a positive integer');
         } else if (typeof stackframe.columnNumber !== 'number' ||
-                stackframe.columnNumber % 1 !== 0 ||
-                stackframe.columnNumber < 0) {
+            stackframe.columnNumber % 1 !== 0 ||
+            stackframe.columnNumber < 0) {
             throw new TypeError('Given column number must be a non-negative integer');
         }
         return true;
@@ -133,20 +133,31 @@
         }
     }
 
-    function _extractLocationInfoFromSourceMap(rawSourceMap, args, lineNumber, columnNumber, sourceCache) {
-        var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
+    function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache) {
+        return new Promise(function(resolve, reject) {
+            var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
 
-        var loc = mapConsumer.originalPositionFor({
-            line: lineNumber,
-            column: columnNumber
+            var loc = mapConsumer.originalPositionFor({
+                line: stackframe.lineNumber,
+                column: stackframe.columnNumber
+            });
+
+            if (loc.source) {
+                var mappedSource = mapConsumer.sourceContentFor(loc.source);
+                if (mappedSource) {
+                    sourceCache[loc.source] = mappedSource;
+                }
+                resolve(
+                    new StackFrame(
+                        loc.name || stackframe.functionName,
+                        stackframe.args,
+                        loc.source,
+                        loc.line,
+                        loc.column));
+            } else {
+                reject(new Error('Could not get original source for given stackframe and source map'));
+            }
         });
-
-        var mappedSource = mapConsumer.sourceContentFor(loc.source);
-        if (mappedSource) {
-            sourceCache[loc.source] = mappedSource;
-        }
-
-        return new StackFrame(loc.name, args, loc.source, loc.line, loc.column);
     }
 
     /**
@@ -272,19 +283,18 @@
                         sourceMappingURL = base + sourceMappingURL;
                     }
 
-                    this._get(sourceMappingURL).then(function(map) {
-                        var line = stackframe.lineNumber;
-                        var column = stackframe.columnNumber;
-
-                        if (typeof map === 'string') {
-                            map = _parseJson(map.replace(/^\)\]\}'/, ''));
+                    this._get(sourceMappingURL).then(function(sourceMap) {
+                        if (typeof sourceMap === 'string') {
+                            sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
+                        }
+                        if (typeof sourceMap.sourceRoot === 'undefined') {
+                            sourceMap.sourceRoot = base;
                         }
 
-                        if (typeof map.sourceRoot === 'undefined') {
-                            map.sourceRoot = base;
-                        }
-
-                        resolve(_extractLocationInfoFromSourceMap(map, stackframe.args, line, column, sourceCache));
+                        _extractLocationInfoFromSourceMap(stackframe, sourceMap, sourceCache)
+                            .then(resolve)['catch'](function() {
+                            resolve(stackframe);
+                        });
                     }, reject)['catch'](reject);
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
