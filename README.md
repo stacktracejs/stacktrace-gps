@@ -65,6 +65,3 @@ Functions that rely on [Source Maps](http://www.html5rocks.com/en/tutorials/deve
 
 ## Contributing
 Want to be listed as a *Contributor*? Start with the [Contributing Guide](CONTRIBUTING.md)!
-
-## License
-This project is licensed to the [Public Domain](http://unlicense.org)
