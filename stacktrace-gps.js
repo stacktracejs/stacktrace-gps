@@ -283,7 +283,7 @@
                         sourceMappingURL = base + sourceMappingURL;
                     }
 
-                    this._get(sourceMappingURL).then(function(sourceMap) {
+                    return this._get(sourceMappingURL).then(function(sourceMap) {
                         if (typeof sourceMap === 'string') {
                             sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
                         }
@@ -291,7 +291,7 @@
                             sourceMap.sourceRoot = base;
                         }
 
-                        _extractLocationInfoFromSourceMap(stackframe, sourceMap, sourceCache)
+                        return _extractLocationInfoFromSourceMap(stackframe, sourceMap, sourceCache)
                             .then(resolve)['catch'](function() {
                             resolve(stackframe);
                         });
