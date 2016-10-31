@@ -133,10 +133,8 @@
         }
     }
 
-    function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache) {
+    function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache, mapConsumer) {
         return new Promise(function(resolve, reject) {
-            var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
-
             var loc = mapConsumer.originalPositionFor({
                 line: stackframe.lineNumber,
                 column: stackframe.columnNumber
@@ -179,6 +177,12 @@
         this.ajax = opts.ajax || _xdr;
 
         this._atob = opts.atob || _atob;
+
+        this.processedSourceMapCache = {};
+
+        this.sourceMapConsumerCache = {};
+
+        var that = this;
 
         this._get = function _get(location) {
             return new Promise(function(resolve, reject) {
@@ -282,16 +286,29 @@
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
                         sourceMappingURL = base + sourceMappingURL;
                     }
-
-                    return this._get(sourceMappingURL).then(function(sourceMap) {
-                        if (typeof sourceMap === 'string') {
-                            sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
+                    this._get(sourceMappingURL).then(function(sourceMap) {
+                        if(that.processedSourceMapCache[sourceMappingURL]) {
+                            sourceMap = that.processedSourceMapCache[sourceMappingURL];
                         }
-                        if (typeof sourceMap.sourceRoot === 'undefined') {
-                            sourceMap.sourceRoot = base;
+                        else {
+                            if (typeof sourceMap === 'string') {
+                                sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
+                            }
+                            if (typeof sourceMap.sourceRoot === 'undefined') {
+                                sourceMap.sourceRoot = base;
+                            }
+                            that.processedSourceMapCache[sourceMappingURL] = sourceMap;
+                        }
+                        var sourceMapConsumer;
+                        if(that.sourceMapConsumerCache[sourceMappingURL]) {
+                            sourceMapConsumer = that.sourceMapConsumerCache[sourceMappingURL];
+                        }
+                        else {
+                            sourceMapConsumer = new SourceMap.SourceMapConsumer(sourceMap);
+                            that.sourceMapConsumerCache[sourceMappingURL] = sourceMapConsumer;
                         }
 
-                        return _extractLocationInfoFromSourceMap(stackframe, sourceMap, sourceCache)
+                        _extractLocationInfoFromSourceMap(stackframe, sourceMap, sourceCache, sourceMapConsumer)
                             .then(resolve)['catch'](function() {
                             resolve(stackframe);
                         });
