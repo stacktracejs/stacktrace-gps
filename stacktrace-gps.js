@@ -148,12 +148,12 @@
                     sourceCache[loc.source] = mappedSource;
                 }
                 resolve(
-                    new StackFrame(
-                        loc.name || stackframe.functionName,
-                        stackframe.args,
-                        loc.source,
-                        loc.line,
-                        loc.column));
+                    new StackFrame({
+                        functionName: loc.name || stackframe.functionName,
+                        args: stackframe.args,
+                        fileName: loc.source,
+                        lineNumber: loc.line,
+                        columnNumber: loc.column}));
             } else {
                 reject(new Error('Could not get original source for given stackframe and source map'));
             }
@@ -249,11 +249,12 @@
                     var guessedFunctionName = _findFunctionName(source, lineNumber, columnNumber);
                     // Only replace functionName if we found something
                     if (guessedFunctionName) {
-                        resolve(new StackFrame(guessedFunctionName,
-                            stackframe.args,
-                            stackframe.fileName,
-                            lineNumber,
-                            columnNumber));
+                        resolve(new StackFrame({
+                            functionName: guessedFunctionName,
+                            args: stackframe.args,
+                            fileName: stackframe.fileName,
+                            lineNumber: lineNumber,
+                            columnNumber: columnNumber}));
                     } else {
                         resolve(stackframe);
                     }

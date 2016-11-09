@@ -52,18 +52,18 @@ describe('StackTraceGPS', function() {
         });
 
         it('rejects given invalid line number', function(done) {
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js');
+            var stackframe = new StackFrame({fileName: 'http://localhost:9999/file.js'});
             new StackTraceGPS().findFunctionName(stackframe).then(done.fail, done);
         });
 
         it('rejects given invalid column number', function(done) {
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 10, -1);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 10, columnNumber: -1});
             new StackTraceGPS().findFunctionName(stackframe).then(done.fail, done);
         });
 
         it('rejects if source file could not be found', function(done) {
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({status: 404});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 23, columnNumber: 0});
             new StackTraceGPS().findFunctionName(stackframe).then(done.fail, errback);
             function errback(error) {
                 expect(error.message).toEqual('HTTP status: 404 retrieving http://localhost:9999/file.js');
@@ -73,19 +73,19 @@ describe('StackTraceGPS', function() {
 
         // Expected spy errback to have been called with [ { line : 123, column : 63, sourceURL : '/Users/ewendelin/src/stacktracejs/stacktrace-gps/spec/stacktrace-gps-spec.js' } ] but actual calls were [ { line : 9, column : 9351, sourceURL : '/Users/ewendelin/src/stacktracejs/stacktrace-gps/stacktrace-gps.js' } ]
         it('rejects in offline mode if sources not in source cache', function(done) {
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 23, columnNumber: 0});
             new StackTraceGPS({offline: true}).findFunctionName(stackframe).then(done.fail, done);
         });
 
         it('resolves sources from given sourceCache', function(done) {
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4});
             var sourceCache = {'http://localhost:9999/file.js': 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")'};
             new StackTraceGPS({sourceCache: sourceCache})
                 .findFunctionName(stackframe)
                 .then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('foo', [], 'http://localhost:9999/file.js', 1, 4));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4}));
                 done();
             }
         });
@@ -93,11 +93,11 @@ describe('StackTraceGPS', function() {
         it('finds function name within function expression', function(done) {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4});
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('foo', [], 'http://localhost:9999/file.js', 1, 4));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4}));
                 done();
             }
         });
@@ -105,11 +105,11 @@ describe('StackTraceGPS', function() {
         it('finds function name within function declaration', function(done) {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0});
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('bar', [], 'http://localhost:9999/file.js', 2, 0));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'bar', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0}));
                 done();
             }
         });
@@ -117,11 +117,11 @@ describe('StackTraceGPS', function() {
         it('finds function name within function evaluation', function(done) {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 3, 3);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 3, columnNumber: 3});
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('baz', [], 'http://localhost:9999/file.js', 3, 3));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'baz', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 3, columnNumber: 3}));
                 done();
             }
         });
@@ -129,29 +129,29 @@ describe('StackTraceGPS', function() {
         it('ignores commented out function definitions', function(done) {
             var source = 'var foo = function() {};\n//function bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0});
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('foo', [], 'http://localhost:9999/file.js', 2, 0));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0}));
                 done();
             }
         });
 
         it('resolves to undefined if function name could not be found', function(done) {
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({status: 200});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 0});
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 0));
+                expect(stackframe).toEqual(new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 0}));
                 done();
             }
         });
 
         it('does not replace non-anonymous function name with anonymous', function(done) {
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({status: 200});
-            var originalStackFrame = new StackFrame('foo', [], 'http://localhost:9999/file.js', 1, 0);
+            var originalStackFrame = new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 0});
             new StackTraceGPS().findFunctionName(originalStackFrame).then(callback, done.fail);
 
             function callback(stackframe) {
@@ -165,10 +165,10 @@ describe('StackTraceGPS', function() {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
 
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 3, 3);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 3, columnNumber: 3});
             unit.findFunctionName(stackframe).then(callback, done.fail);
 
-            var stackframe2 = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
+            var stackframe2 = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0});
             unit.findFunctionName(stackframe2).then(callback, done.fail);
 
             var callCount = 0;
@@ -190,7 +190,7 @@ describe('StackTraceGPS', function() {
         it('rejects if sourceMapURL not found', function(done) {
             var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 23, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 23, columnNumber: 0});
             new StackTraceGPS().getMappedLocation(stackframe).then(done.fail, done);
         });
 
@@ -198,7 +198,7 @@ describe('StackTraceGPS', function() {
             var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
             jasmine.Ajax.stubRequest('http://localhost:9999/test.js').andReturn({responseText: source});
             jasmine.Ajax.stubRequest('http://localhost:9999/test.js.map').andReturn({status: 404});
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.js', 23, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 23, columnNumber: 0});
             new StackTraceGPS().getMappedLocation(stackframe).then(done.fail, done);
         });
 
@@ -206,14 +206,14 @@ describe('StackTraceGPS', function() {
             beforeEach(function() {
                 var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
                 jasmine.Ajax.stubRequest('test.min.js').andReturn({responseText: sourceMin});
-                this.stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+                this.stackframe = new StackFrame({args: [], fileName: 'test.min.js', lineNumber: 1, columnNumber: 47});
             });
 
             it('supports inline source maps', function(done) {
                 new StackTraceGPS().getMappedLocation(this.stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('eval', [], 'test.js', 6, 10));
+                    expect(stackframe).toEqual(new StackFrame({functionName: 'eval', args: [], fileName: 'test.js', lineNumber: 6, columnNumber: 10}));
                     done();
                 }
             });
@@ -246,11 +246,11 @@ describe('StackTraceGPS', function() {
         it('tolerates inline source maps with parameters set', function(done) {
             var sourceMin = 'var foo=function(){};function bar(){}var baz=eval("XXX");//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRlc3QuanMiXSwibmFtZXMiOlsiZm9vIiwiYmFyIiwiYmF6IiwiZXZhbCJdLCJtYXBwaW5ncyI6IkFBQUEsR0FBSUEsS0FBTSxZQUdWLFNBQVNDLFFBRVQsR0FBSUMsS0FBTUMsS0FBTSJ9';
             jasmine.Ajax.stubRequest('test.min.js').andReturn({responseText: sourceMin});
-            this.stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+            this.stackframe = new StackFrame({args: [], fileName: 'test.min.js', lineNumber: 1, columnNumber: 47});
             new StackTraceGPS().getMappedLocation(this.stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('eval', [], 'test.js', 6, 10));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'eval', args: [], fileName: 'test.js', lineNumber: 6, columnNumber: 10}));
                 done();
             }
         });
@@ -264,37 +264,37 @@ describe('StackTraceGPS', function() {
             });
 
             it('retrieves source mapped location for function expressions', function(done) {
-                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 5);
+                var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.min.js', lineNumber: 1, columnNumber: 5});
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('foo', [], 'http://localhost:9999/test.js', 1, 4));
+                    expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 1, columnNumber: 4}));
                     done();
                 }
             });
 
             it('retrieves source mapped location for function declarations', function(done) {
-                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 32);
+                var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.min.js', lineNumber: 1, columnNumber: 32});
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('bar', [], 'http://localhost:9999/test.js', 2, 9));
+                    expect(stackframe).toEqual(new StackFrame({functionName: 'bar', args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 2, columnNumber: 9}));
                     done();
                 }
             });
 
             it('retrieves source mapped location for eval', function(done) {
-                var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/test.min.js', 1, 47);
+                var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.min.js', lineNumber: 1, columnNumber: 47});
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
-                    expect(stackframe).toEqual(new StackFrame('eval', [], 'http://localhost:9999/test.js', 3, 10));
+                    expect(stackframe).toEqual(new StackFrame({functionName: 'eval', args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 3, columnNumber: 10}));
                     done();
                 }
             });
 
             it('does not replace non-empty functionName with empty value', function(done) {
-                var stackframe = new StackFrame('foo', [], 'http://localhost:9999/test.min.js', 2000, 4200);
+                var stackframe = new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/test.min.js', lineNumber: 2000, columnNumber: 4200});
                 new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
 
                 function callback(stackframe) {
@@ -317,11 +317,11 @@ describe('StackTraceGPS', function() {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('test.js').andReturn({responseText: source});
 
-            var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+            var stackframe = new StackFrame({args: [], fileName: 'test.min.js', lineNumber: 1, columnNumber: 47});
             new StackTraceGPS().pinpoint(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('baz', [], 'test.js', 3, 10));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'baz', args: [], fileName: 'test.js', lineNumber: 3, columnNumber: 10}));
                 done();
             }
         });
@@ -329,11 +329,11 @@ describe('StackTraceGPS', function() {
         it('resolves with mapped location even if find function name fails', function(done) {
             jasmine.Ajax.stubRequest('test.js').andError();
 
-            var stackframe = new StackFrame(undefined, [], 'test.min.js', 1, 47);
+            var stackframe = new StackFrame({args: [], fileName: 'test.min.js', lineNumber: 1, columnNumber: 47});
             new StackTraceGPS().pinpoint(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('eval', [], 'test.js', 3, 10));
+                expect(stackframe).toEqual(new StackFrame({functionName: 'eval', args: [], fileName: 'test.js', lineNumber: 3, columnNumber: 10}));
                 done();
             }
         });
