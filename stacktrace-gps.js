@@ -62,12 +62,14 @@
     }
 
     function _findFunctionName(source, lineNumber/*, columnNumber*/) {
-        // function {name}({args}) m[1]=name m[2]=args
-        var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
-        // {name} = function ({args}) TODO args capture
-        var reFunctionExpression = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/;
-        // {name} = eval()
-        var reFunctionEvaluation = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/;
+        var syntaxes = [
+          // {name} = function ({args}) TODO args capture
+          /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/,
+          // function {name}({args}) m[1]=name m[2]=args
+          /function\s+([^(]*?)\s*\(([^)]*)\)/,
+          // {name} = eval()
+          /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,
+        ]
         var lines = source.split('\n');
 
         // Walk backwards in the source lines until we find the line which matches one of the patterns above
@@ -84,17 +86,12 @@
 
             if (line) {
                 code = line + code;
-                m = reFunctionExpression.exec(code);
-                if (m && m[1]) {
-                    return m[1];
-                }
-                m = reFunctionDeclaration.exec(code);
-                if (m && m[1]) {
-                    return m[1];
-                }
-                m = reFunctionEvaluation.exec(code);
-                if (m && m[1]) {
-                    return m[1];
+                var len = syntaxes.length;
+                for (var i = 0; i < len; i++) {
+                  var m = syntaxes[i].exec(code);
+                  if (m && m[1]) {
+                      return m[1];
+                  }
                 }
             }
         }
