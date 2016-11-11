@@ -90,6 +90,32 @@ describe('StackTraceGPS', function() {
             }
         });
 
+        it('resolves source for class method', function(done) {
+            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
+            var sourceCache = {'http://localhost:9999/file.js': 'class Foo {\nbar () {\n}\n }\n'};
+            new StackTraceGPS({sourceCache: sourceCache})
+                .findFunctionName(stackframe)
+                .then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe).toEqual(new StackFrame('bar', [], 'http://localhost:9999/file.js', 2, 0));
+                done();
+            }
+        });
+
+        it('resolves source for fat arrow functions', function(done) {
+            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
+            var sourceCache = {'http://localhost:9999/file.js': 'var meow = () => { }'};
+            new StackTraceGPS({sourceCache: sourceCache})
+                .findFunctionName(stackframe)
+                .then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe).toEqual(new StackFrame('meow', [], 'http://localhost:9999/file.js', 1, 4));
+                done();
+            }
+        });
+
         it('finds function name within function expression', function(done) {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});

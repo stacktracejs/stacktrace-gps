@@ -69,13 +69,16 @@
           /function\s+([^(]*?)\s*\(([^)]*)\)/,
           // {name} = eval()
           /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,
-        ]
+          // fn_name() {
+          /\b(?!(?:if|for|switch|while|with|catch)\b)(\S+)\s*\(.*?\)\s*{/,
+          // {name} = () => {
+          /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/
+        ];
         var lines = source.split('\n');
 
         // Walk backwards in the source lines until we find the line which matches one of the patterns above
         var code = '';
         var maxLines = Math.min(lineNumber, 20);
-        var m;
         for (var i = 0; i < maxLines; ++i) {
             // lineNo is 1-based, source[] is 0-based
             var line = lines[lineNumber - i - 1];
@@ -87,8 +90,8 @@
             if (line) {
                 code = line + code;
                 var len = syntaxes.length;
-                for (var i = 0; i < len; i++) {
-                  var m = syntaxes[i].exec(code);
+                for (var index = 0; index < len; index++) {
+                  var m = syntaxes[index].exec(code);
                   if (m && m[1]) {
                       return m[1];
                   }
