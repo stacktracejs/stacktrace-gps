@@ -114,6 +114,18 @@ describe('StackTraceGPS', function() {
             }
         });
 
+        it('ignores special case invalid function declaration', function(done) {
+            var source = 'true ? warning(ReactCurrentOwner.current == null, \'_renderNewRootComponent(): Render methods should be a pure function \' + \'of props and state; triggering nested component updates from \' + \'render is not allowed. If necessary, trigger nested updates in \' + \'componentDidUpdate. Check the render method of %s.\', ReactCurrentOwner.current && ReactCurrentOwner.current.getName() || \'ReactCompositeComponent\') : void 0;';
+            jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
+            var originalStackFrame = new StackFrame('@test@', [], 'http://localhost:9999/file.js', 1, 0);
+            new StackTraceGPS().findFunctionName(originalStackFrame).then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe).toEqual(originalStackFrame);
+                done();
+            }
+        });
+
         it('finds function name within function evaluation', function(done) {
             var source = 'var foo = function() {};\nfunction bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
