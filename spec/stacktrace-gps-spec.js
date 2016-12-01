@@ -233,7 +233,7 @@ describe('StackTraceGPS', function() {
         });
 
         it('rejects if source map file 404s', function(done) {
-            var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+            var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//# sourceMappingURL=test.js.map';
             jasmine.Ajax.stubRequest('http://localhost:9999/test.js').andReturn({responseText: source});
             jasmine.Ajax.stubRequest('http://localhost:9999/test.js.map').andReturn({status: 404});
             var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 23, columnNumber: 0});
@@ -295,7 +295,7 @@ describe('StackTraceGPS', function() {
 
         describe('given source and source map that resolves', function() {
             beforeEach(function() {
-                var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+                var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map\n//# sourceURL=test.js';
                 jasmine.Ajax.stubRequest('http://localhost:9999/test.min.js').andReturn({responseText: source});
                 var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
                 jasmine.Ajax.stubRequest('http://localhost:9999/test.js.map').andReturn({responseText: sourceMap});

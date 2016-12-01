@@ -125,7 +125,7 @@
     }
 
     function _findSourceMappingURL(source) {
-        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/.exec(source);
+        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/m.exec(source);
         if (m && m[1]) {
             return m[1];
         } else {
