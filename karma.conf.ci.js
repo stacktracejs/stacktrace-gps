@@ -46,10 +46,10 @@ module.exports = function(config) {
             browserName: 'chrome',
             version: 'dev'
         },
-        slFirefox42: {
+        slFirefox43: {
             base: 'SauceLabs',
             browserName: 'firefox',
-            platform: 'OS X 10.9',
+            platform: 'Windows 8.1',
             version: '43.0'
         },
         slSafari8: {
@@ -64,15 +64,21 @@ module.exports = function(config) {
             platform: 'OS X 10.11',
             version: '9'
         },
+        slSafari10: {
+            base: 'SauceLabs',
+            browserName: 'safari',
+            platform: 'OS X 10.11',
+            version: '10'
+        },
         slOpera: {
             base: 'SauceLabs',
             browserName: 'opera'
         },
-        slEdge20: {
+        slEdge14: {
             base: 'SauceLabs',
             browserName: 'microsoftedge',
             platform: 'Windows 10',
-            version: '20.10240'
+            version: '14.14393'
         },
         slIE11: {
             base: 'SauceLabs',
