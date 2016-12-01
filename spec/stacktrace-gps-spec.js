@@ -91,27 +91,27 @@ describe('StackTraceGPS', function() {
         });
 
         it('resolves source for class method', function(done) {
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 2, 0);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0});
             var sourceCache = {'http://localhost:9999/file.js': 'class Foo {\nbar () {\n}\n }\n'};
             new StackTraceGPS({sourceCache: sourceCache})
                 .findFunctionName(stackframe)
                 .then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('bar', [], 'http://localhost:9999/file.js', 2, 0));
+                expect(stackframe.functionName).toEqual('bar');
                 done();
             }
         });
 
         it('resolves source for fat arrow functions', function(done) {
-            var stackframe = new StackFrame(undefined, [], 'http://localhost:9999/file.js', 1, 4);
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4});
             var sourceCache = {'http://localhost:9999/file.js': 'var meow = () => { }'};
             new StackTraceGPS({sourceCache: sourceCache})
                 .findFunctionName(stackframe)
                 .then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame('meow', [], 'http://localhost:9999/file.js', 1, 4));
+                expect(stackframe.functionName).toEqual('meow');
                 done();
             }
         });
@@ -123,7 +123,7 @@ describe('StackTraceGPS', function() {
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4}));
+                expect(stackframe.functionName).toEqual('foo');
                 done();
             }
         });
@@ -135,7 +135,7 @@ describe('StackTraceGPS', function() {
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame({functionName: 'bar', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0}));
+                expect(stackframe.functionName).toEqual('bar');
                 done();
             }
         });
@@ -143,7 +143,7 @@ describe('StackTraceGPS', function() {
         it('ignores special case invalid function declaration', function(done) {
             var source = 'true ? warning(ReactCurrentOwner.current == null, \'_renderNewRootComponent(): Render methods should be a pure function \' + \'of props and state; triggering nested component updates from \' + \'render is not allowed. If necessary, trigger nested updates in \' + \'componentDidUpdate. Check the render method of %s.\', ReactCurrentOwner.current && ReactCurrentOwner.current.getName() || \'ReactCompositeComponent\') : void 0;';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
-            var originalStackFrame = new StackFrame('@test@', [], 'http://localhost:9999/file.js', 1, 0);
+            var originalStackFrame = new StackFrame({functionName: '@test@', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 0});
             new StackTraceGPS().findFunctionName(originalStackFrame).then(callback, done.fail);
 
             function callback(stackframe) {
@@ -159,7 +159,7 @@ describe('StackTraceGPS', function() {
             new StackTraceGPS().findFunctionName(stackframe).then(callback, done.fail);
 
             function callback(stackframe) {
-                expect(stackframe).toEqual(new StackFrame({functionName: 'baz', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 3, columnNumber: 3}));
+                expect(stackframe.functionName).toEqual('baz');
                 done();
             }
         });
