@@ -63,7 +63,7 @@
 
     function _findFunctionName(source, lineNumber/*, columnNumber*/) {
         // function {name}({args}) m[1]=name m[2]=args
-        var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
+        var reFunctionDeclaration = /function\s+([^('"`]*?)\s*\(([^)]*)\)/;
         // {name} = function ({args}) TODO args capture
         var reFunctionExpression = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/;
         // {name} = eval()
