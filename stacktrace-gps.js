@@ -63,16 +63,16 @@
 
     function _findFunctionName(source, lineNumber/*, columnNumber*/) {
         var syntaxes = [
-          // {name} = function ({args}) TODO args capture
-          /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/,
-          // function {name}({args}) m[1]=name m[2]=args
-          /function\s+([^('"`]*?)\s*\(([^)]*)\)/,
-          // {name} = eval()
-          /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,
-          // fn_name() {
-          /\b(?!(?:if|for|switch|while|with|catch)\b)(\S+)\s*\(.*?\)\s*{/,
-          // {name} = () => {
-          /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/
+            // {name} = function ({args}) TODO args capture
+            /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/,
+            // function {name}({args}) m[1]=name m[2]=args
+            /function\s+([^('"`]*?)\s*\(([^)]*)\)/,
+            // {name} = eval()
+            /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,
+            // fn_name() {
+            /\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?(\S+)\s*\(.*?\)\s*\{/,
+            // {name} = () => {
+            /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/
         ];
         var lines = source.split('\n');
 
@@ -91,10 +91,10 @@
                 code = line + code;
                 var len = syntaxes.length;
                 for (var index = 0; index < len; index++) {
-                  var m = syntaxes[index].exec(code);
-                  if (m && m[1]) {
-                      return m[1];
-                  }
+                    var m = syntaxes[index].exec(code);
+                    if (m && m[1]) {
+                        return m[1];
+                    }
                 }
             }
         }
@@ -153,7 +153,8 @@
                         args: stackframe.args,
                         fileName: loc.source,
                         lineNumber: loc.line,
-                        columnNumber: loc.column}));
+                        columnNumber: loc.column
+                    }));
             } else {
                 reject(new Error('Could not get original source for given stackframe and source map'));
             }
@@ -254,7 +255,8 @@
                             args: stackframe.args,
                             fileName: stackframe.fileName,
                             lineNumber: lineNumber,
-                            columnNumber: columnNumber}));
+                            columnNumber: columnNumber
+                        }));
                     } else {
                         resolve(stackframe);
                     }

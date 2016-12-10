@@ -164,6 +164,17 @@ describe('StackTraceGPS', function() {
             }
         });
 
+        it('finds function name within static functions', function(done) {
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 8});
+            var sourceCache = {'http://localhost:9999/file.js': 'class Foo {\nstatic woof() {\n}\n}'};
+            new StackTraceGPS({sourceCache: sourceCache}).findFunctionName(stackframe).then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe.functionName).toEqual('woof');
+                done();
+            }
+        });
+
         it('ignores commented out function definitions', function(done) {
             var source = 'var foo = function() {};\n//function bar() {}\nvar baz = eval("XXX")';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
