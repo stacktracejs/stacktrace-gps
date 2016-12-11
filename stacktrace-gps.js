@@ -26,7 +26,8 @@
             req.onerror = reject;
             req.onreadystatechange = function onreadystatechange() {
                 if (req.readyState === 4) {
-                    if (req.status >= 200 && req.status < 300) {
+                    if ((req.status >= 200 && req.status < 300) ||
+                        (url.substr(0, 7) === 'file://' && req.responseText)) {
                         resolve(req.responseText);
                     } else {
                         reject(new Error('HTTP status: ' + req.status + ' retrieving ' + url));
@@ -132,7 +133,6 @@
             throw new Error('sourceMappingURL not found');
         }
     }
-
 
 
     function _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache) {
