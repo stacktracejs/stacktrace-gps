@@ -134,7 +134,6 @@
         }
     }
 
-
     function _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache) {
         return new Promise(function(resolve, reject) {
             var loc = sourceMapConsumer.originalPositionFor({
@@ -143,11 +142,14 @@
             });
 
             if (loc.source) {
+                // cache mapped sources
                 var mappedSource = sourceMapConsumer.sourceContentFor(loc.source);
                 if (mappedSource) {
                     sourceCache[loc.source] = mappedSource;
                 }
+
                 resolve(
+                    // given stackframe and source location, update stackframe
                     new StackFrame({
                         functionName: loc.name || stackframe.functionName,
                         args: stackframe.args,
@@ -217,6 +219,37 @@
         };
 
         /**
+         * Creating SourceMapConsumers is expensive, so this wraps the creation of a
+         * SourceMapConsumer in a per-instance cache.
+         *
+         * @param sourceMappingURL = {String} URL to fetch source map from
+         * @param defaultSourceRoot = Default source root for source map if undefined
+         * @returns {Promise} that resolves a SourceMapConsumer
+         */
+        this._getSourceMapConsumer = function _getSourceMapConsumer(sourceMappingURL, defaultSourceRoot) {
+            return new Promise(function(resolve, reject) {
+                if (this.sourceMapConsumerCache[sourceMappingURL]) {
+                    resolve(this.sourceMapConsumerCache[sourceMappingURL]);
+                } else {
+                    var sourceMapConsumerPromise = new Promise(function(resolve) {
+                        return this._get(sourceMappingURL).then(function(sourceMapSource) {
+                            if (typeof sourceMapSource === 'string') {
+                                sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ''));
+                            }
+                            if (typeof sourceMapSource.sourceRoot === 'undefined') {
+                                sourceMapSource.sourceRoot = defaultSourceRoot;
+                            }
+
+                            resolve(new SourceMap.SourceMapConsumer(sourceMapSource));
+                        }, reject);
+                    }.bind(this));
+                    this.sourceMapConsumerCache[sourceMappingURL] = sourceMapConsumerPromise;
+                    resolve(sourceMapConsumerPromise);
+                }
+            }.bind(this));
+        };
+
+        /**
          * Given a StackFrame, enhance function name and use source maps for a
          * better StackFrame.
          *
@@ -278,40 +311,22 @@
                 _ensureStackFrameIsLegit(stackframe);
 
                 var sourceCache = this.sourceCache;
-                var sourceMapConsumerCache = this.sourceMapConsumerCache;
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function(source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
                     var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
-                    var base = fileName.substring(0, fileName.lastIndexOf('/') + 1);
+                    var defaultSourceRoot = fileName.substring(0, fileName.lastIndexOf('/') + 1);
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
-                        sourceMappingURL = base + sourceMappingURL;
+                        sourceMappingURL = defaultSourceRoot + sourceMappingURL;
                     }
 
-                    var cachedSourceMapConsumer = sourceMapConsumerCache[sourceMappingURL];
-                    if (cachedSourceMapConsumer !== undefined) {
-                        return _extractLocationInfoFromSourceMapSource(stackframe, cachedSourceMapConsumer, sourceCache)
-                            .then(resolve)['catch'](function() {
-                            resolve(stackframe);
-                        });
-                    }
-
-                    return this._get(sourceMappingURL).then(function(sourceMapSource) {
-                        if (typeof sourceMapSource === 'string') {
-                            sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ''));
-                        }
-                        if (typeof sourceMapSource.sourceRoot === 'undefined') {
-                            sourceMapSource.sourceRoot = base;
-                        }
-
-                        var sourceMapConsumer = new SourceMap.SourceMapConsumer(sourceMapSource);
-                        sourceMapConsumerCache[sourceMappingURL] = sourceMapConsumer;
+                    return this._getSourceMapConsumer(sourceMappingURL, defaultSourceRoot).then(function(sourceMapConsumer) {
                         return _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache)
                             .then(resolve)['catch'](function() {
                             resolve(stackframe);
                         });
-                    }, reject)['catch'](reject);
+                    });
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
         };

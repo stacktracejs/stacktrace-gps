@@ -42,6 +42,29 @@ describe('StackTraceGPS', function() {
         });
     });
 
+    describe('#_getSourceMapConsumer', function() {
+        it('avoids duplicate SourceMapConsumers', function(done) {
+            var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+            var sourceMapUrl = 'http://localhost:9999/test.js.map';
+            jasmine.Ajax.stubRequest(sourceMapUrl).andReturn({responseText: sourceMap});
+
+            var stackTraceGPS = new StackTraceGPS();
+            stackTraceGPS._getSourceMapConsumer(sourceMapUrl).then(callback, done.fail);
+            stackTraceGPS._getSourceMapConsumer(sourceMapUrl).then(callback, done.fail);
+
+            var callCount = 0;
+            function callback() {
+                callCount++;
+                if (callCount === 1) {
+                    expect(stackTraceGPS.sourceMapConsumerCache[sourceMapUrl]).toBeTruthy();
+                } else if (callCount === 2) {
+                    expect(Object.keys(stackTraceGPS.sourceMapConsumerCache).length).toBe(1);
+                    done();
+                }
+            }
+        });
+    });
+
     describe('#findFunctionName', function() {
         it('rejects given non-object StackFrame', function(done) {
             StackTraceGPS().findFunctionName('').then(done.fail, done); // jshint ignore:line
