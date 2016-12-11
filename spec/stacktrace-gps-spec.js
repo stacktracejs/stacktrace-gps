@@ -352,6 +352,23 @@ describe('StackTraceGPS', function() {
                 }
             });
         });
+
+        describe('given cache entry for source map', function() {
+            it('resolves SourceMapConsumer from cache', function(done) {
+                var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.min.js', lineNumber: 1, columnNumber: 4});
+                var sourceCache = {'http://localhost:9999/file.min.js': 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//# sourceMappingURL=file.js.map'};
+                var sourceMap = '{"version":3,"sources":["./file.js"],"sourceRoot":"http://localhost:9999/","names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"file.min.js"}';
+                var sourceMapConsumerCache = {'http://localhost:9999/file.js.map': new SourceMap.SourceMapConsumer(sourceMap)};
+                new StackTraceGPS({sourceCache: sourceCache, sourceMapConsumerCache: sourceMapConsumerCache})
+                    .getMappedLocation(stackframe)
+                    .then(callback, done.fail);
+
+                function callback(stackframe) {
+                    expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 4}));
+                    done();
+                }
+            });
+        });
     });
 
     describe('#pinpoint', function() {
