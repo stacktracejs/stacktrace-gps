@@ -231,7 +231,7 @@
                 if (this.sourceMapConsumerCache[sourceMappingURL]) {
                     resolve(this.sourceMapConsumerCache[sourceMappingURL]);
                 } else {
-                    var sourceMapConsumerPromise = new Promise(function(resolve) {
+                    var sourceMapConsumerPromise = new Promise(function(resolve, reject) {
                         return this._get(sourceMappingURL).then(function(sourceMapSource) {
                             if (typeof sourceMapSource === 'string') {
                                 sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ''));
