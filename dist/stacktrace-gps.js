@@ -26,7 +26,8 @@
             req.onerror = reject;
             req.onreadystatechange = function onreadystatechange() {
                 if (req.readyState === 4) {
-                    if (req.status >= 200 && req.status < 300) {
+                    if ((req.status >= 200 && req.status < 300) ||
+                        (url.substr(0, 7) === 'file://' && req.responseText)) {
                         resolve(req.responseText);
                     } else {
                         reject(new Error('HTTP status: ' + req.status + ' retrieving ' + url));
@@ -62,18 +63,23 @@
     }
 
     function _findFunctionName(source, lineNumber/*, columnNumber*/) {
-        // function {name}({args}) m[1]=name m[2]=args
-        var reFunctionDeclaration = /function\s+([^(]*?)\s*\(([^)]*)\)/;
-        // {name} = function ({args}) TODO args capture
-        var reFunctionExpression = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/;
-        // {name} = eval()
-        var reFunctionEvaluation = /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/;
+        var syntaxes = [
+            // {name} = function ({args}) TODO args capture
+            /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/,
+            // function {name}({args}) m[1]=name m[2]=args
+            /function\s+([^('"`]*?)\s*\(([^)]*)\)/,
+            // {name} = eval()
+            /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,
+            // fn_name() {
+            /\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?(\S+)\s*\(.*?\)\s*\{/,
+            // {name} = () => {
+            /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/
+        ];
         var lines = source.split('\n');
 
         // Walk backwards in the source lines until we find the line which matches one of the patterns above
         var code = '';
         var maxLines = Math.min(lineNumber, 20);
-        var m;
         for (var i = 0; i < maxLines; ++i) {
             // lineNo is 1-based, source[] is 0-based
             var line = lines[lineNumber - i - 1];
@@ -84,17 +90,12 @@
 
             if (line) {
                 code = line + code;
-                m = reFunctionExpression.exec(code);
-                if (m && m[1]) {
-                    return m[1];
-                }
-                m = reFunctionDeclaration.exec(code);
-                if (m && m[1]) {
-                    return m[1];
-                }
-                m = reFunctionEvaluation.exec(code);
-                if (m && m[1]) {
-                    return m[1];
+                var len = syntaxes.length;
+                for (var index = 0; index < len; index++) {
+                    var m = syntaxes[index].exec(code);
+                    if (m && m[1]) {
+                        return m[1];
+                    }
                 }
             }
         }
@@ -125,7 +126,7 @@
     }
 
     function _findSourceMappingURL(source) {
-        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/.exec(source);
+        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/m.exec(source);
         if (m && m[1]) {
             return m[1];
         } else {
@@ -133,27 +134,29 @@
         }
     }
 
-    function _extractLocationInfoFromSourceMap(stackframe, rawSourceMap, sourceCache) {
+    function _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache) {
         return new Promise(function(resolve, reject) {
-            var mapConsumer = new SourceMap.SourceMapConsumer(rawSourceMap);
-
-            var loc = mapConsumer.originalPositionFor({
+            var loc = sourceMapConsumer.originalPositionFor({
                 line: stackframe.lineNumber,
                 column: stackframe.columnNumber
             });
 
             if (loc.source) {
-                var mappedSource = mapConsumer.sourceContentFor(loc.source);
+                // cache mapped sources
+                var mappedSource = sourceMapConsumer.sourceContentFor(loc.source);
                 if (mappedSource) {
                     sourceCache[loc.source] = mappedSource;
                 }
+
                 resolve(
-                    new StackFrame(
-                        loc.name || stackframe.functionName,
-                        stackframe.args,
-                        loc.source,
-                        loc.line,
-                        loc.column));
+                    // given stackframe and source location, update stackframe
+                    new StackFrame({
+                        functionName: loc.name || stackframe.functionName,
+                        args: stackframe.args,
+                        fileName: loc.source,
+                        lineNumber: loc.line,
+                        columnNumber: loc.column
+                    }));
             } else {
                 reject(new Error('Could not get original source for given stackframe and source map'));
             }
@@ -164,6 +167,7 @@
      * @constructor
      * @param {Object} opts
      *      opts.sourceCache = {url: "Source String"} => preload source cache
+     *      opts.sourceMapConsumerCache = {/path/file.js.map: SourceMapConsumer}
      *      opts.offline = True to prevent network requests.
      *              Best effort without sources or source maps.
      *      opts.ajax = Promise returning function to make X-Domain requests
@@ -175,6 +179,7 @@
         opts = opts || {};
 
         this.sourceCache = opts.sourceCache || {};
+        this.sourceMapConsumerCache = opts.sourceMapConsumerCache || {};
 
         this.ajax = opts.ajax || _xdr;
 
@@ -209,6 +214,37 @@
                         this.sourceCache[location] = xhrPromise;
                         xhrPromise.then(resolve, reject);
                     }
+                }
+            }.bind(this));
+        };
+
+        /**
+         * Creating SourceMapConsumers is expensive, so this wraps the creation of a
+         * SourceMapConsumer in a per-instance cache.
+         *
+         * @param sourceMappingURL = {String} URL to fetch source map from
+         * @param defaultSourceRoot = Default source root for source map if undefined
+         * @returns {Promise} that resolves a SourceMapConsumer
+         */
+        this._getSourceMapConsumer = function _getSourceMapConsumer(sourceMappingURL, defaultSourceRoot) {
+            return new Promise(function(resolve, reject) {
+                if (this.sourceMapConsumerCache[sourceMappingURL]) {
+                    resolve(this.sourceMapConsumerCache[sourceMappingURL]);
+                } else {
+                    var sourceMapConsumerPromise = new Promise(function(resolve, reject) {
+                        return this._get(sourceMappingURL).then(function(sourceMapSource) {
+                            if (typeof sourceMapSource === 'string') {
+                                sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ''));
+                            }
+                            if (typeof sourceMapSource.sourceRoot === 'undefined') {
+                                sourceMapSource.sourceRoot = defaultSourceRoot;
+                            }
+
+                            resolve(new SourceMap.SourceMapConsumer(sourceMapSource));
+                        }, reject);
+                    }.bind(this));
+                    this.sourceMapConsumerCache[sourceMappingURL] = sourceMapConsumerPromise;
+                    resolve(sourceMapConsumerPromise);
                 }
             }.bind(this));
         };
@@ -249,11 +285,13 @@
                     var guessedFunctionName = _findFunctionName(source, lineNumber, columnNumber);
                     // Only replace functionName if we found something
                     if (guessedFunctionName) {
-                        resolve(new StackFrame(guessedFunctionName,
-                            stackframe.args,
-                            stackframe.fileName,
-                            lineNumber,
-                            columnNumber));
+                        resolve(new StackFrame({
+                            functionName: guessedFunctionName,
+                            args: stackframe.args,
+                            fileName: stackframe.fileName,
+                            lineNumber: lineNumber,
+                            columnNumber: columnNumber
+                        }));
                     } else {
                         resolve(stackframe);
                     }
@@ -277,25 +315,18 @@
                 this._get(fileName).then(function(source) {
                     var sourceMappingURL = _findSourceMappingURL(source);
                     var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
-                    var base = fileName.substring(0, fileName.lastIndexOf('/') + 1);
+                    var defaultSourceRoot = fileName.substring(0, fileName.lastIndexOf('/') + 1);
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
-                        sourceMappingURL = base + sourceMappingURL;
+                        sourceMappingURL = defaultSourceRoot + sourceMappingURL;
                     }
 
-                    this._get(sourceMappingURL).then(function(sourceMap) {
-                        if (typeof sourceMap === 'string') {
-                            sourceMap = _parseJson(sourceMap.replace(/^\)\]\}'/, ''));
-                        }
-                        if (typeof sourceMap.sourceRoot === 'undefined') {
-                            sourceMap.sourceRoot = base;
-                        }
-
-                        _extractLocationInfoFromSourceMap(stackframe, sourceMap, sourceCache)
+                    return this._getSourceMapConsumer(sourceMappingURL, defaultSourceRoot).then(function(sourceMapConsumer) {
+                        return _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache)
                             .then(resolve)['catch'](function() {
                             resolve(stackframe);
                         });
-                    }, reject)['catch'](reject);
+                    });
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
         };
