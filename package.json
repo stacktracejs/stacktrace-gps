@@ -2,7 +2,7 @@
   "name": "stacktrace-gps",
   "description": "Turns partial code location into precise code location",
   "maintainers": [
-    "Eric Wendelin <me@eriwen.com> (http://www.eriwen.com)",
+    "Eric Wendelin <me@eriwen.com> (https://www.eriwen.com)",
     "Victor Homyakov <vkhomyackov@gmail.com> (https://github.com/victor-homyakov)",
     "Oliver Salzburg (https://github.com/oliversalzburg)"
   ],
