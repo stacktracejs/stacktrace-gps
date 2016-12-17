@@ -22,14 +22,14 @@
         "error",
         "debugger"
     ],
-    "license": "Public Domain",
+    "license": "Unlicense",
     "ignore": [
         "**/.*",
         "node_modules",
         "spec"
     ],
     "dependencies": {
-        "source-map": "mozilla/source-map#0.5.1",
-        "stackframe": "~0.3.1"
+        "source-map": "mozilla/source-map#0.5.6",
+        "stackframe": "1.0.2"
     }
 }
