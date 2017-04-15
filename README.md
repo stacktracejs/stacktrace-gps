@@ -1,6 +1,6 @@
 stacktrace-gps - Turn partial code location into precise code location
 ===================
-[![Build Status](https://travis-ci.org/stacktracejs/stacktrace-gps.svg?branch=master)](https://travis-ci.org/stacktracejs/stacktrace-gps) [![Coverage Status](https://img.shields.io/coveralls/stacktracejs/stacktrace-gps.svg)](https://coveralls.io/r/stacktracejs/stacktrace-gps) [![GitHub license](https://img.shields.io/github/license/stacktracejs/stacktrace-gps.svg)](http://unlicense.org)
+[![Build Status](https://travis-ci.org/stacktracejs/stacktrace-gps.svg?branch=master)](https://travis-ci.org/stacktracejs/stacktrace-gps) [![Coverage Status](https://img.shields.io/coveralls/stacktracejs/stacktrace-gps.svg)](https://coveralls.io/r/stacktracejs/stacktrace-gps) [![GitHub license](https://img.shields.io/github/license/stacktracejs/stacktrace-gps.svg)](https://opensource.org/licenses/MIT)
 
 This library accepts a code location (in the form of a [StackFrame](https://github.com/stacktracejs/stackframe)) and
 returns a new StackFrame with a more accurate location (using [source maps](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/)) and guessed function names.

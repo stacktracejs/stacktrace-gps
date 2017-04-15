@@ -7,7 +7,7 @@
     "Oliver Salzburg (https://github.com/oliversalzburg)"
   ],
   "version": "3.0.0",
-  "license": "Unlicense",
+  "license": "MIT",
   "keywords": [
     "stacktrace",
     "error",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "source-map": "0.5.6",
-    "stackframe": "^1.0.2"
+    "stackframe": "^1.0.3"
   },
   "devDependencies": {
     "colors": "^1.1.2",
