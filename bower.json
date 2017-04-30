@@ -22,7 +22,7 @@
         "error",
         "debugger"
     ],
-    "license": "Unlicense",
+    "license": "MIT",
     "ignore": [
         "**/.*",
         "node_modules",
