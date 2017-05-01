@@ -125,13 +125,18 @@
         return true;
     }
 
+    var _reSourceMapping = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/gm;
+
     function _findSourceMappingURL(source) {
-        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/m.exec(source);
-        if (m && m[1]) {
-            return m[1];
-        } else {
-            throw new Error('sourceMappingURL not found');
+        var allMatches = source.match(_reSourceMapping);
+        if (allMatches) {
+            var lastSourceMappingReference = allMatches[allMatches.length - 1];
+            var m = _reSourceMapping.exec(lastSourceMappingReference);
+            if (m && m[1]) {
+                return m[1];
+            }
         }
+        throw new Error('sourceMappingURL not found');
     }
 
     function _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache) {
