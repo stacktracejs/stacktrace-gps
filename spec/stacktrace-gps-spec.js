@@ -376,6 +376,25 @@ describe('StackTraceGPS', function() {
             });
         });
 
+        describe('given source with more than one source map reference', function() {
+            beforeEach(function() {
+                var source = 'var foo=function(){};\n//@ sourceMappingURL=garbage.js.map\nfunction bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+                jasmine.Ajax.stubRequest('http://localhost:9999/test.min.js').andReturn({responseText: source});
+                var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+                jasmine.Ajax.stubRequest('http://localhost:9999/test.js.map').andReturn({responseText: sourceMap});
+            });
+
+            it('retrieves the last source map location found on the file', function(done) {
+                var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.min.js', lineNumber: 1, columnNumber: 5});
+                new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
+
+                function callback(stackframe) {
+                    expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 1, columnNumber: 4}));
+                    done();
+                }
+            });
+        });
+
         describe('given cache entry for source map', function() {
             it('resolves SourceMapConsumer from cache', function(done) {
                 var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/file.min.js', lineNumber: 1, columnNumber: 4});
