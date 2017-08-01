@@ -327,6 +327,21 @@ describe('StackTraceGPS', function() {
             }
         });
 
+        it('ignores all but the last sourceMappingURL in the file', function (done) {
+            var source = 'var foo=function(){};\n//# sourceMappingURL=ignoreme.js.map\nfunction bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map';
+            jasmine.Ajax.stubRequest('http://localhost:9999/test.min.js').andReturn({responseText: source});
+            var sourceMap = '{"version":3,"sources":["./test.js"],"names":["foo","bar","baz","eval"],"mappings":"AAAA,GAAIA,KAAM,YACV,SAASC,QACT,GAAIC,KAAMC,KAAK","file":"test.min.js"}';
+            jasmine.Ajax.stubRequest('http://localhost:9999/test.js.map').andReturn({responseText: sourceMap});
+
+            var stackframe = new StackFrame({args: [], fileName: 'http://localhost:9999/test.min.js', lineNumber: 1, columnNumber: 5});
+            new StackTraceGPS().getMappedLocation(stackframe).then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe).toEqual(new StackFrame({functionName: 'foo', args: [], fileName: 'http://localhost:9999/test.js', lineNumber: 1, columnNumber: 4}));
+                done();
+            }
+        });
+
         describe('given source and source map that resolves', function() {
             beforeEach(function() {
                 var source = 'var foo=function(){};function bar(){}var baz=eval("XXX");\n//@ sourceMappingURL=test.js.map\n//# sourceURL=test.js';

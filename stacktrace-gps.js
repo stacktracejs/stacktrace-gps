@@ -126,9 +126,14 @@
     }
 
     function _findSourceMappingURL(source) {
-        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/m.exec(source);
-        if (m && m[1]) {
-            return m[1];
+        var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/mg;
+        var lastSourceMappingUrl;
+        var matchSourceMappingUrl;
+        while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) {
+            lastSourceMappingUrl = matchSourceMappingUrl[1];
+        }
+        if (lastSourceMappingUrl) {
+            return lastSourceMappingUrl;
         } else {
             throw new Error('sourceMappingURL not found');
         }
