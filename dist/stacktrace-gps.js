@@ -126,9 +126,14 @@
     }
 
     function _findSourceMappingURL(source) {
-        var m = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/m.exec(source);
-        if (m && m[1]) {
-            return m[1];
+        var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/mg;
+        var lastSourceMappingUrl;
+        var matchSourceMappingUrl;
+        while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) { // jshint ignore:line
+            lastSourceMappingUrl = matchSourceMappingUrl[1];
+        }
+        if (lastSourceMappingUrl) {
+            return lastSourceMappingUrl;
         } else {
             throw new Error('sourceMappingURL not found');
         }
@@ -222,8 +227,8 @@
          * Creating SourceMapConsumers is expensive, so this wraps the creation of a
          * SourceMapConsumer in a per-instance cache.
          *
-         * @param sourceMappingURL = {String} URL to fetch source map from
-         * @param defaultSourceRoot = Default source root for source map if undefined
+         * @param {String} sourceMappingURL = URL to fetch source map from
+         * @param {String} defaultSourceRoot = Default source root for source map if undefined
          * @returns {Promise} that resolves a SourceMapConsumer
          */
         this._getSourceMapConsumer = function _getSourceMapConsumer(sourceMappingURL, defaultSourceRoot) {
@@ -321,12 +326,13 @@
                         sourceMappingURL = defaultSourceRoot + sourceMappingURL;
                     }
 
-                    return this._getSourceMapConsumer(sourceMappingURL, defaultSourceRoot).then(function(sourceMapConsumer) {
-                        return _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache)
-                            .then(resolve)['catch'](function() {
-                            resolve(stackframe);
+                    return this._getSourceMapConsumer(sourceMappingURL, defaultSourceRoot)
+                        .then(function(sourceMapConsumer) {
+                            return _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache)
+                                .then(resolve)['catch'](function() {
+                                resolve(stackframe);
+                            });
                         });
-                    });
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
         };
