@@ -129,7 +129,7 @@
         var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/mg;
         var lastSourceMappingUrl;
         var matchSourceMappingUrl;
-        while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) {
+        while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) { // jshint ignore:line
             lastSourceMappingUrl = matchSourceMappingUrl[1];
         }
         if (lastSourceMappingUrl) {
