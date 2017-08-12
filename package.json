@@ -64,6 +64,7 @@
     "node_modules/source-map/"
   ],
   "scripts": {
-    "test": "gulp test"
+    "test": "gulp test",
+    "prepublish": "gulp dist"
   }
 }
