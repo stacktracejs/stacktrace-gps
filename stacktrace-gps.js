@@ -1,4 +1,4 @@
-(function(root, factory) {
+(function (root, factory) {
     'use strict';
     // Universal Module Definition (UMD) to support AMD, CommonJS/Node.js, Rhino, and browsers.
 
@@ -10,7 +10,7 @@
     } else {
         root.StackTraceGPS = factory(root.SourceMap || root.sourceMap, root.StackFrame);
     }
-}(this, function(SourceMap, StackFrame) {
+}(this, function (SourceMap, StackFrame) {
     'use strict';
 
     /**
@@ -20,7 +20,7 @@
      * @returns {Promise} with response text if fulfilled
      */
     function _xdr(url) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             var req = new XMLHttpRequest();
             req.open('get', url);
             req.onerror = reject;
@@ -62,7 +62,7 @@
         }
     }
 
-    function _findFunctionName(source, lineNumber/*, columnNumber*/) {
+    function _findFunctionName(source, lineNumber /*, columnNumber*/ ) {
         var syntaxes = [
             // {name} = function ({args}) TODO args capture
             /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/,
@@ -125,7 +125,7 @@
         return true;
     }
 
-    function _findSourceMappingURL(source) {
+    function _findSourceMappingURL(source, fileName) {
         var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/mg;
         var lastSourceMappingUrl;
         var matchSourceMappingUrl;
@@ -134,13 +134,19 @@
         }
         if (lastSourceMappingUrl) {
             return lastSourceMappingUrl;
+        }
+        if (fileName) {
+            var defaultFileName = fileName.split('/')
+            defaultFileName = defaultFileName[defaultFileName.length - 1];
+            lastSourceMappingUrl = defaultFileName + '.map'
+            return lastSourceMappingUrl;
         } else {
             throw new Error('sourceMappingURL not found');
         }
     }
 
     function _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             var loc = sourceMapConsumer.originalPositionFor({
                 line: stackframe.lineNumber,
                 column: stackframe.columnNumber
@@ -191,7 +197,7 @@
         this._atob = opts.atob || _atob;
 
         this._get = function _get(location) {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 var isDataUrl = location.substr(0, 5) === 'data:';
                 if (this.sourceCache[location]) {
                     resolve(this.sourceCache[location]);
@@ -214,7 +220,9 @@
                             reject(new Error('The encoding of the inline sourcemap is not supported'));
                         }
                     } else {
-                        var xhrPromise = this.ajax(location, {method: 'get'});
+                        var xhrPromise = this.ajax(location, {
+                            method: 'get'
+                        });
                         // Cache the Promise to prevent duplicate in-flight requests
                         this.sourceCache[location] = xhrPromise;
                         xhrPromise.then(resolve, reject);
@@ -232,12 +240,12 @@
          * @returns {Promise} that resolves a SourceMapConsumer
          */
         this._getSourceMapConsumer = function _getSourceMapConsumer(sourceMappingURL, defaultSourceRoot) {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 if (this.sourceMapConsumerCache[sourceMappingURL]) {
                     resolve(this.sourceMapConsumerCache[sourceMappingURL]);
                 } else {
-                    var sourceMapConsumerPromise = new Promise(function(resolve, reject) {
-                        return this._get(sourceMappingURL).then(function(sourceMapSource) {
+                    var sourceMapConsumerPromise = new Promise(function (resolve, reject) {
+                        return this._get(sourceMappingURL).then(function (sourceMapSource) {
                             if (typeof sourceMapSource === 'string') {
                                 sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ''));
                             }
@@ -261,16 +269,15 @@
          * @param {StackFrame} stackframe object
          * @returns {Promise} that resolves with with source-mapped StackFrame
          */
-        this.pinpoint = function StackTraceGPS$$pinpoint(stackframe) {
-            return new Promise(function(resolve, reject) {
-                this.getMappedLocation(stackframe).then(function(mappedStackFrame) {
+        this.pinpoint = function StackTraceGPS$$pinpoint(stackframe, defaultSourceRootParam) {
+            return new Promise(function (resolve, reject) {
+                this.getMappedLocation(stackframe, defaultSourceRootParam).then(function (mappedStackFrame) {
                     function resolveMappedStackFrame() {
                         resolve(mappedStackFrame);
                     }
 
                     this.findFunctionName(mappedStackFrame)
-                        .then(resolve, resolveMappedStackFrame)
-                        ['catch'](resolveMappedStackFrame);
+                        .then(resolve, resolveMappedStackFrame)['catch'](resolveMappedStackFrame);
                 }.bind(this), reject);
             }.bind(this));
         };
@@ -282,7 +289,7 @@
          * @returns {Promise} that resolves with enhanced StackFrame.
          */
         this.findFunctionName = function StackTraceGPS$$findFunctionName(stackframe) {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 _ensureStackFrameIsLegit(stackframe);
                 this._get(stackframe.fileName).then(function getSourceCallback(source) {
                     var lineNumber = stackframe.lineNumber;
@@ -310,28 +317,29 @@
          * @param {StackFrame} stackframe
          * @returns {Promise} that resolves with enhanced StackFrame.
          */
-        this.getMappedLocation = function StackTraceGPS$$getMappedLocation(stackframe) {
-            return new Promise(function(resolve, reject) {
+        this.getMappedLocation = function StackTraceGPS$$getMappedLocation(stackframe, defaultSourceRootParam) {
+            return new Promise(function (resolve, reject) {
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
 
                 var sourceCache = this.sourceCache;
                 var fileName = stackframe.fileName;
-                this._get(fileName).then(function(source) {
-                    var sourceMappingURL = _findSourceMappingURL(source);
+                this._get(fileName).then(function (source) {
+                    var sourceMappingURL = _findSourceMappingURL(source, fileName);
                     var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
-                    var defaultSourceRoot = fileName.substring(0, fileName.lastIndexOf('/') + 1);
+                    var defaultSourceRoot = defaultSourceRootParam || fileName.substring(0, fileName.lastIndexOf('/') + 1);
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
                         sourceMappingURL = defaultSourceRoot + sourceMappingURL;
                     }
 
+
                     return this._getSourceMapConsumer(sourceMappingURL, defaultSourceRoot)
-                        .then(function(sourceMapConsumer) {
+                        .then(function (sourceMapConsumer) {
                             return _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache)
-                                .then(resolve)['catch'](function() {
-                                resolve(stackframe);
-                            });
+                                .then(resolve)['catch'](function () {
+                                    resolve(stackframe);
+                                });
                         });
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
