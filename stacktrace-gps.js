@@ -267,7 +267,7 @@
          * better StackFrame.
          *
          * @param {StackFrame} stackframe object
-         * @returns {Promise} that resolves with with source-mapped StackFrame
+         * @returns {Promise} that resolves with with source-mapped StackFrame 
          */
         this.pinpoint = function StackTraceGPS$$pinpoint(stackframe, defaultSourceRootParam) {
             return new Promise(function (resolve, reject) {
