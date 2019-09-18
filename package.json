@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "source-map": "0.5.6",
-    "stackframe": "^1.0.4"
+    "stackframe": "^1.1.0"
   },
   "devDependencies": {
     "colors": "^1.1.2",
