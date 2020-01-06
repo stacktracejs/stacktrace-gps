@@ -18,4 +18,4 @@ before_install:
 before_script:
   - npm install
 script:
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then npm run lint && gulp test-ci; else npm run test-pr; fi
+  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then npm run lint && npm run test-ci; else npm run test-pr; fi
