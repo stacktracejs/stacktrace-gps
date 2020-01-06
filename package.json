@@ -20,35 +20,35 @@
   },
   "dependencies": {
     "source-map": "0.5.6",
-    "stackframe": "^1.1.0"
+    "stackframe": "^1.1.1"
   },
   "devDependencies": {
     "colors": "^1.1.2",
     "del": "^2.2.0",
+    "eslint": "^6.8.0",
     "es6-promise": "^3.0.2",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-coveralls": "^0.1.4",
-    "gulp-jshint": "^2.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.5.1",
     "jasmine": "^2.7.0",
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.7.0",
-    "jshint": "^2.8.0",
-    "karma": "^1.7.0",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-coverage": "^1.1.1",
-    "karma-firefox-launcher": "^1.0.1",
+    "karma": "^4.4.1",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-coverage": "^2.0.1",
+    "karma-coveralls": "^2.1.0",
+    "karma-firefox-launcher": "^1.2.0",
     "karma-ie-launcher": "^1.0.0",
-    "karma-jasmine": "^1.1.0",
+    "karma-jasmine": "^1.1.2",
     "karma-jasmine-ajax": "^0.1.13",
     "karma-opera-launcher": "^1.0.0",
-    "karma-phantomjs2-launcher": "^0.5.0",
+    "karma-phantomjs-launcher": "^1.0.4",
     "karma-safari-launcher": "^1.0.0",
-    "karma-sauce-launcher": "^1.1.0",
-    "karma-spec-reporter": "^0.0.31",
+    "karma-sauce-launcher": "^2.0.2",
+    "karma-spec-reporter": "^0.0.32",
     "run-sequence": "^1.1.4",
     "webpack": "^1.12.9"
   },
@@ -64,7 +64,10 @@
     "node_modules/source-map/"
   ],
   "scripts": {
-    "test": "gulp test",
-    "prepublish": "gulp dist"
+    "lint": "eslint --fix stacktrace-gps.js spec/",
+    "prepublish": "gulp dist",
+    "test": "karma start karma.conf.js --single-run",
+    "test-pr": "karma start karma.conf.js --single-run --browsers Firefox,Chrome_Travis",
+    "test-ci": "karma start karma.conf.ci.js --single-run"
   }
 }

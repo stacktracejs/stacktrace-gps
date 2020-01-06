@@ -129,7 +129,8 @@
         var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/mg;
         var lastSourceMappingUrl;
         var matchSourceMappingUrl;
-        while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) { // jshint ignore:line
+        // eslint-disable-next-line no-cond-assign
+        while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) {
             lastSourceMappingUrl = matchSourceMappingUrl[1];
         }
         if (lastSourceMappingUrl) {
@@ -232,7 +233,7 @@
          * @returns {Promise} that resolves a SourceMapConsumer
          */
         this._getSourceMapConsumer = function _getSourceMapConsumer(sourceMappingURL, defaultSourceRoot) {
-            return new Promise(function(resolve, reject) {
+            return new Promise(function(resolve) {
                 if (this.sourceMapConsumerCache[sourceMappingURL]) {
                     resolve(this.sourceMapConsumerCache[sourceMappingURL]);
                 } else {
@@ -270,6 +271,7 @@
 
                     this.findFunctionName(mappedStackFrame)
                         .then(resolve, resolveMappedStackFrame)
+                        // eslint-disable-next-line no-unexpected-multiline
                         ['catch'](resolveMappedStackFrame);
                 }.bind(this), reject);
             }.bind(this));
@@ -330,8 +332,8 @@
                         .then(function(sourceMapConsumer) {
                             return _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache)
                                 .then(resolve)['catch'](function() {
-                                resolve(stackframe);
-                            });
+                                    resolve(stackframe);
+                                });
                         });
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));

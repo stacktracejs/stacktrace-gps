@@ -2,7 +2,6 @@ var concat = require('gulp-concat');
 var coveralls = require('gulp-coveralls');
 var del = require('del');
 var gulp = require('gulp');
-var jshint = require('gulp-jshint');
 var karma = require('karma');
 var path = require('path');
 var runSequence = require('run-sequence');
@@ -19,13 +18,6 @@ var dependencies = [
     './build/bundle.js'
 ];
 var source = 'stacktrace-gps.js';
-
-gulp.task('lint', function() {
-    return gulp.src(source)
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(jshint.reporter('fail'));
-});
 
 gulp.task('webpack-source-consumer', function() {
     return webpack({
@@ -88,13 +80,13 @@ gulp.task('dist', ['copy', 'webpack-source-consumer'], function() {
 
 gulp.task('clean', del.bind(null, ['build', 'coverage', 'dist']));
 
-gulp.task('pr', ['lint', 'test-pr']);
+gulp.task('pr', ['test-pr']);
 
-gulp.task('ci', ['lint', 'test-ci'], function() {
+gulp.task('ci', ['test-ci'], function() {
     gulp.src('./coverage/**/lcov.info')
         .pipe(coveralls());
 });
 
 gulp.task('default', ['clean'], function(cb) {
-    runSequence('lint', ['copy', 'dist'], 'test', cb);
+    runSequence(['copy', 'dist'], 'test', cb);
 });
