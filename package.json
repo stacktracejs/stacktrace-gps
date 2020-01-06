@@ -29,7 +29,6 @@
     "es6-promise": "^3.0.2",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
-    "gulp-coveralls": "^0.1.4",
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.5.1",
