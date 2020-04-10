@@ -247,7 +247,7 @@
                             }
 
                             resolve(new SourceMap.SourceMapConsumer(sourceMapSource));
-                        }, reject);
+                        }).catch(reject);
                     }.bind(this));
                     this.sourceMapConsumerCache[sourceMappingURL] = sourceMapConsumerPromise;
                     resolve(sourceMapConsumerPromise);
