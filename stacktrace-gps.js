@@ -125,7 +125,7 @@
         return true;
     }
 
-    function _findSourceMappingURL(source) {
+    function _findSourceMappingURL(source, fileName) {
         var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/mg;
         var lastSourceMappingUrl;
         var matchSourceMappingUrl;
@@ -134,6 +134,12 @@
             lastSourceMappingUrl = matchSourceMappingUrl[1];
         }
         if (lastSourceMappingUrl) {
+            return lastSourceMappingUrl;
+        }
+        if (fileName) {
+            var defaultFileName = fileName.split('/');
+            defaultFileName = defaultFileName[defaultFileName.length - 1];
+            lastSourceMappingUrl = defaultFileName + '.map';
             return lastSourceMappingUrl;
         } else {
             throw new Error('sourceMappingURL not found');
@@ -260,11 +266,12 @@
          * better StackFrame.
          *
          * @param {StackFrame} stackframe object
+         * @param {String} sourceRoot optional path to source root
          * @returns {Promise} that resolves with with source-mapped StackFrame
          */
-        this.pinpoint = function StackTraceGPS$$pinpoint(stackframe) {
+        this.pinpoint = function StackTraceGPS$$pinpoint(stackframe, sourceRoot) {
             return new Promise(function(resolve, reject) {
-                this.getMappedLocation(stackframe).then(function(mappedStackFrame) {
+                this.getMappedLocation(stackframe, sourceRoot).then(function(mappedStackFrame) {
                     function resolveMappedStackFrame() {
                         resolve(mappedStackFrame);
                     }
@@ -310,9 +317,10 @@
          * Given a StackFrame, seek source-mapped location and return new enhanced StackFrame.
          *
          * @param {StackFrame} stackframe
+         * @param {String} sourceRoot optional path to source root directory
          * @returns {Promise} that resolves with enhanced StackFrame.
          */
-        this.getMappedLocation = function StackTraceGPS$$getMappedLocation(stackframe) {
+        this.getMappedLocation = function StackTraceGPS$$getMappedLocation(stackframe, sourceRoot) {
             return new Promise(function(resolve, reject) {
                 _ensureSupportedEnvironment();
                 _ensureStackFrameIsLegit(stackframe);
@@ -320,9 +328,9 @@
                 var sourceCache = this.sourceCache;
                 var fileName = stackframe.fileName;
                 this._get(fileName).then(function(source) {
-                    var sourceMappingURL = _findSourceMappingURL(source);
+                    var sourceMappingURL = _findSourceMappingURL(source, fileName);
                     var isDataUrl = sourceMappingURL.substr(0, 5) === 'data:';
-                    var defaultSourceRoot = fileName.substring(0, fileName.lastIndexOf('/') + 1);
+                    var defaultSourceRoot = sourceRoot || fileName.substring(0, fileName.lastIndexOf('/') + 1);
 
                     if (sourceMappingURL[0] !== '/' && !isDataUrl && !(/^https?:\/\/|^\/\//i).test(sourceMappingURL)) {
                         sourceMappingURL = defaultSourceRoot + sourceMappingURL;
