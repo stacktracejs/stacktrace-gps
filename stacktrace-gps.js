@@ -174,6 +174,8 @@
      * @param {Object} opts
      *      opts.sourceCache = {url: "Source String"} => preload source cache
      *      opts.sourceMapConsumerCache = {/path/file.js.map: SourceMapConsumer}
+     *      opts.contextMaxLineLength = {Number}
+     *      opts.contextMaxLinesCount = {Number} 
      *      opts.offline = True to prevent network requests.
      *              Best effort without sources or source maps.
      *      opts.ajax = Promise returning function to make X-Domain requests
@@ -186,6 +188,9 @@
 
         this.sourceCache = opts.sourceCache || {};
         this.sourceMapConsumerCache = opts.sourceMapConsumerCache || {};
+
+        this.contextMaxLineLength = opts.contextMaxLineLength || 200;
+        this.contextMaxLinesCount = opts.contextMaxLinesCount || 5;
 
         this.ajax = opts.ajax || _xdr;
 
@@ -335,6 +340,99 @@
                                     resolve(stackframe);
                                 });
                         });
+                }.bind(this), reject)['catch'](reject);
+            }.bind(this));
+        };
+
+        /**
+         * Given the source code line and the column number,
+         * truncate the line to contextMaxLineLength,
+         * return the start and end indexes of the truncated line.
+         *
+         * @param {String} line
+         * @param {Number} columnNumber
+         * @returns {Object}
+         */
+        this._getContextSingleLineIndexes = function _getContextSingleLineIndexes(line, columnNumber) {
+            var indexStart = columnNumber - 1 - Math.floor(this.contextMaxLineLength / 2);
+            if (indexStart < 0) {
+                indexStart = 0;
+            }
+            var indexEnd = indexStart + this.contextMaxLineLength;
+            if (indexEnd > line.length) {
+                indexEnd = line.length;
+                indexStart = indexEnd - this.contextMaxLineLength;
+                if (indexStart < 0) {
+                    indexStart = 0;
+                }
+            }
+            return [indexStart, indexEnd];
+        };
+
+        /**
+         * Given the source code lines and the line number,
+         * truncate the lines array to contextMaxLinesCount,
+         * avoid the lines with length more than contextMaxLineLength,
+         * return the object with the lines subarray and its start line number.
+         *
+         * @param {Array.String} lines
+         * @param {Number} lineNumber
+         * @returns {Object}
+         */
+        this._getContextMultipleLinesIndexes = function _getContextMultipleLinesIndexes(lines, lineNumber) {
+            var indexes = [lineNumber - 1, lineNumber];
+            var active = [true, true];
+            var step = 0;
+            while (indexes[1] - indexes[0] < this.contextMaxLinesCount) {
+                var line = lines[indexes[step] + step - 1];
+                if (line === undefined || line.length > this.contextMaxLineLength) {
+                    active[step] = false;
+                } else {
+                    indexes[step] += 2 * step - 1;
+                }
+                if (active[1 - step]) {
+                    step = 1 - step;
+                } else if (!active[step]) {
+                    break;
+                }
+            }
+            return indexes;
+        };
+
+        /**
+         * Given a StackFrame, return a surrounding source code part with its start position.
+         *
+         * @param {StackFrame} stackframe
+         * @returns {Promise}
+         */
+        this.getContext = function StackTraceGPS$$getContext(stackframe) {
+            return new Promise(function(resolve, reject) {
+                _ensureSupportedEnvironment();
+                _ensureStackFrameIsLegit(stackframe);
+
+                var fileName = stackframe.fileName;
+                var lineNumber = stackframe.lineNumber;
+                var columnNumber = stackframe.columnNumber;
+                this._get(fileName).then(function(source) {
+                    var lines = source.split('\n');
+                    var line = lines[lineNumber - 1];
+                    var indexes, context;
+                    if (line.length > this.contextMaxLineLength) {
+                        indexes = this._getContextSingleLineIndexes(line, columnNumber);
+                        context = {
+                            source: line.substring(indexes[0], indexes[1]),
+                            lineNumber: lineNumber,
+                            columnNumber: indexes[0] + 1
+                        };
+                    } else {
+                        indexes = this._getContextMultipleLinesIndexes(lines, lineNumber);
+                        context = {
+                            source: lines.slice(indexes[0], indexes[1]).join('\n'),
+                            lineNumber: indexes[0] + 1,
+                            columnNumber: 0
+                        };
+                    }
+                    resolve(context);
                 }.bind(this), reject)['catch'](reject);
             }.bind(this));
         };
