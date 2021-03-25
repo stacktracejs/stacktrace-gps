@@ -49,10 +49,12 @@
     "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
   },
   "main": "./stacktrace-gps.js",
+  "types": "./stacktrace-gps.d.ts",
   "files": [
     "LICENSE",
     "README.md",
     "stacktrace-gps.js",
+    "stacktrace-gps.d.ts",
     "dist/",
     "node_modules/source-map/"
   ],
