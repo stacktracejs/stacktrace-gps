@@ -28,7 +28,7 @@
     "jasmine": "^2.7.0",
     "jasmine-ajax": "^3.3.1",
     "jasmine-core": "^2.7.0",
-    "karma": "^4.4.1",
+    "karma": "^6.3.14",
     "karma-chrome-launcher": "^3.1.0",
     "karma-coverage": "^2.0.1",
     "karma-coveralls": "^2.1.0",
