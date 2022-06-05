@@ -88,11 +88,11 @@ module.exports = function(config) {
         captureTimeout: 240000,
         sauceLabs: {
             testName: 'stacktrace-gps unit tests',
+            commandTimeout: 600,
+            idleTimeout: 600,
             recordScreenshots: false,
-            connectOptions: {
-                port: 5757,
-                logfile: 'sauce_connect.log'
-            }
+            recordVideo: false,
+            retryLimit: 3
         },
         customLaunchers: customLaunchers,
         browsers: Object.keys(customLaunchers),
@@ -102,7 +102,10 @@ module.exports = function(config) {
         },
         coverageReporter: {
             type: 'lcov',
-            dir: 'coverage'
+            dir: 'coverage',
+            subdir: function(browser) {
+                return browser.toLowerCase().split(/[ /-]/)[0];
+            }
         },
         singleRun: true
     });
