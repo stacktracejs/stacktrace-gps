@@ -1,6 +1,8 @@
 stacktrace-gps - Turn partial code location into precise code location
 ===================
-[![Build Status](https://travis-ci.org/stacktracejs/stacktrace-gps.svg?branch=master)](https://travis-ci.org/stacktracejs/stacktrace-gps) [![Coverage Status](https://img.shields.io/coveralls/stacktracejs/stacktrace-gps.svg)](https://coveralls.io/r/stacktracejs/stacktrace-gps) [![GitHub license](https://img.shields.io/github/license/stacktracejs/stacktrace-gps.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/github/workflow/status/stacktracejs/stacktrace-gps/Continuous%20Integration/master?logo=github&style=flat-square)](https://github.com/stacktracejs/stacktrace-gps/actions?query=workflow%3AContinuous+Integration+branch%3Amaster)
+[![Coverage Status](https://img.shields.io/coveralls/stacktracejs/stacktrace-gps.svg?style=flat-square)](https://coveralls.io/r/stacktracejs/stacktrace-gps?branch=master)
+[![GitHub license](https://img.shields.io/github/license/stacktracejs/stacktrace-gps.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 This library accepts a code location (in the form of a [StackFrame](https://github.com/stacktracejs/stackframe)) and
 returns a new StackFrame with a more accurate location (using [source maps](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/)) and guessed function names.
@@ -86,4 +88,4 @@ Functions that rely on [Source Maps](http://www.html5rocks.com/en/tutorials/deve
 (`pinpoint` and `getMappedLocation`) require recent browsers.
 
 ## Contributing
-Want to be listed as a *Contributor*? Start with the [Contributing Guide](CONTRIBUTING.md)!
+Want to be listed as a *Contributor*? Start with the [Contributing Guide](.github/CONTRIBUTING.md)!
