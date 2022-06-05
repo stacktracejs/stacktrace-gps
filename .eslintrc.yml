@@ -18,6 +18,10 @@ globals:
   StackTraceGPS: false
 parserOptions:
   ecmaVersion: 5
+ignorePatterns:
+  - 'coverage/**'
+  - 'dist/**'
+  - '**/*.ts'
 rules:
   indent:
     - error
