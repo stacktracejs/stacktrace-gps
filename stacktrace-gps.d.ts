@@ -1,5 +1,5 @@
 import { SourceMapConsumer } from "source-map";
-import StackFrame = require("stackframe");
+import StackFrame from "stackframe";
 
 declare namespace StackTraceGPS {
   /**
@@ -57,6 +57,4 @@ declare class StackTraceGPS {
   getMappedLocation(stackframe: StackFrame): Promise<StackFrame>;
 }
 
-export = StackTraceGPS;
-
-export as namespace StackTraceGPS; // global for non-module UMD users
+export default StackTraceGPS;
