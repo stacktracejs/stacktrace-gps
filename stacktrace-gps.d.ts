@@ -57,4 +57,6 @@ declare class StackTraceGPS {
   getMappedLocation(stackframe: StackFrame): Promise<StackFrame>;
 }
 
-export default StackTraceGPS;
+export = StackTraceGPS;
+
+export as namespace StackTraceGPS; // global for non-module UMD users

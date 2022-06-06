@@ -63,7 +63,7 @@
     "lint": "eslint --fix stacktrace-gps.js spec/",
     "prepare": "cp stacktrace-gps.js polyfills.js dist/ && ./node_modules/.bin/webpack --mode production && uglifyjs node_modules/stackframe/stackframe.js ./build/bundle.js stacktrace-gps.js -o dist/stacktrace-gps.min.js --compress --mangle --source-map \"url=stacktrace-gps.min.js.map\" && uglifyjs node_modules/es6-promise/dist/es6-promise.js polyfills.js node_modules/stackframe/stackframe.js build/bundle.js stacktrace-gps.js -o dist/stacktrace-gps-with-polyfills.min.js --compress --mangle --source-map \"url=stacktrace-gps-polyfilled.min.js.map\"",
     "test": "karma start karma.conf.js --single-run",
-    "test-pr": "karma start karma.conf.js --single-run --browsers Firefox,Chrome_Travis",
+    "test-pr": "karma start karma.conf.js --single-run --browsers Firefox,Chrome_No_Sandbox",
     "test-ci": "karma start karma.conf.ci.js --single-run"
   }
 }

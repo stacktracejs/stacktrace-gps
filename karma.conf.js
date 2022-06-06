@@ -14,7 +14,7 @@ module.exports = function(config) {
         logLevel: config.LOG_INFO,
         autoWatch: true,
         customLaunchers: {
-            Chrome_Travis: {
+            Chrome_No_Sandbox: {
                 base: 'Chrome',
                 flags: ['--no-sandbox']
             }
