@@ -1,5 +1,5 @@
 import { SourceMapConsumer } from "source-map";
-import StackFrame from "stackframe";
+import StackFrame = require("stackframe");
 
 declare namespace StackTraceGPS {
   /**
