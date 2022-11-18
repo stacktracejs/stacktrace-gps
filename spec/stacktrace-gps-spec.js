@@ -198,10 +198,22 @@ describe('StackTraceGPS', function() {
             }
         });
 
-        it('ignores special case involving class functions', function(done) {
+        it('ignores special case interpreting control structures as the function parameter list', function(done) {
             var source = 'if (a) { foo(); } else if (b) { bar(); }';
             jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
             var originalStackFrame = new StackFrame({functionName: '@test@', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 1, columnNumber: 0});
+            new StackTraceGPS().findFunctionName(originalStackFrame).then(callback, done.fail);
+
+            function callback(stackframe) {
+                expect(stackframe).toEqual(originalStackFrame);
+                done();
+            }
+        });
+
+        it('ignores special case interpreting control structures as the function name', function(done) {
+            var source = 'functionCall()\nif (condition) {';
+            jasmine.Ajax.stubRequest('http://localhost:9999/file.js').andReturn({responseText: source});
+            var originalStackFrame = new StackFrame({functionName: '@test@', args: [], fileName: 'http://localhost:9999/file.js', lineNumber: 2, columnNumber: 0});
             new StackTraceGPS().findFunctionName(originalStackFrame).then(callback, done.fail);
 
             function callback(stackframe) {
