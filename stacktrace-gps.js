@@ -71,7 +71,7 @@
             // {name} = eval()
             /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,
             // fn_name() {
-            /\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?(\S+)\s*\(.*?\)\s*\{/,
+            /\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?([^('"`\s]+?)\s*\([^)]*\)\s*\{/,
             // {name} = () => {
             /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/
         ];
