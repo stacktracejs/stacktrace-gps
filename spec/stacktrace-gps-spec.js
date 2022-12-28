@@ -466,4 +466,74 @@ describe('StackTraceGPS', function() {
             }
         });
     });
+
+    describe('#_getContextSingleLineIndexes', function() {
+        it('returns indexes that determine the correct range', function(done) {
+            test(1);
+            test(4);
+            test(5);
+            done();
+
+            function test(contextMaxLineLength) {
+                var stackTraceGPS = new StackTraceGPS({ contextMaxLineLength: contextMaxLineLength });
+                var line = '';
+                for (var length = 1; length <= 10; length++) {
+                    line += 'x';
+                    for (var columnNumber = 1; columnNumber <= 1; columnNumber++) {
+                        var indexes = stackTraceGPS._getContextSingleLineIndexes(line, columnNumber);
+                        expect(indexes[1] - indexes[0]).toBe(Math.min(contextMaxLineLength, length));
+                        expect(indexes[1] >= columnNumber && columnNumber > indexes[0]).toBe(true);
+                    }
+                }
+            }
+        });
+    });
+
+    describe('#_getContextMultipleLinesIndexes', function() {
+        it('returns indexes that determine the correct range', function(done) {
+            test(1);
+            test(4);
+            test(5);
+            done();
+
+            function test(contextMaxLinesCount) {
+                var stackTraceGPS = new StackTraceGPS({ contextMaxLinesCount: contextMaxLinesCount });
+                var lines = [];
+                for (var count = 1; count <= 10; count++) {
+                    lines.push('x');
+                    for (var columnNumber = 1; columnNumber <= 1; columnNumber++) {
+                        var indexes = stackTraceGPS._getContextMultipleLinesIndexes(lines, columnNumber);
+                        expect(indexes[1] - indexes[0]).toBe(Math.min(contextMaxLinesCount, count));
+                        expect(indexes[1] >= columnNumber && columnNumber > indexes[0]).toBe(true);
+                    }
+                }
+            }
+        });
+
+        it('avoids too long lines', function(done) {
+            var lines = [
+                'line',
+                'too long line',
+                'line',
+                'line',
+                'line',
+                'too long line',
+                'line'
+            ];
+            var stackTraceGPS = new StackTraceGPS({ contextMaxLineLength: 4, contextMaxLinesCount: 2 });
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 1)).toEqual([0, 1]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 3)).toEqual([2, 4]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 4)).toEqual([2, 4]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 5)).toEqual([3, 5]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 7)).toEqual([6, 7]);
+            stackTraceGPS.contextMaxLinesCount = 5;
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 1)).toEqual([0, 1]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 3)).toEqual([2, 5]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 4)).toEqual([2, 5]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 5)).toEqual([2, 5]);
+            expect(stackTraceGPS._getContextMultipleLinesIndexes(lines, 7)).toEqual([6, 7]);
+            done();
+        });
+    });
+
 });

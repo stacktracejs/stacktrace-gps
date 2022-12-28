@@ -64,6 +64,11 @@ https://raw.githubusercontent.com/stacktracejs/stacktrace-gps/master/dist/stackt
 options: Object
 * **sourceCache: Object (String URL : String Source)** - Pre-populate source cache to avoid network requests
 * **sourceMapConsumerCache: Object (Source Mapping URL : SourceMap.SourceMapConsumer)** - Pre-populate source cache to avoid network requests
+* **sourceCache: Object (String URL : String Source)** - Pre-populate source cache to avoid network requests
+* **sourceMapConsumerCache: Object (Source Mapping URL : SourceMap.SourceMapConsumer)** - Pre-populate source cache to avoid network requests
+* **offline: Boolean (default false)** - Set to `true` to prevent all network requests
+* **contextMaxLineLength: Number (default 200)** - The maximum length of one line in the context source code
+* **contextMaxLinesCount: Number (default 5)** - The maximum number of lines in the context source code 
 * **offline: Boolean (default false)** - Set to `true` to prevent all network requests
 * **ajax: Function (String URL => Promise(responseText))** - Function to be used for making X-Domain requests
 * **atob: Function (String => String)** - Function to convert base64-encoded strings to their original representation
@@ -79,6 +84,10 @@ Enhance function name and use source maps to produce a better StackFrame.
 
 #### `.getMappedLocation(stackframe)` => Promise(StackFrame)
 Enhance function name and use source maps to produce a better StackFrame.
+* **stackframe** - [StackFrame](https://github.com/stacktracejs/stackframe) or like object
+
+#### `.getContext(stackframe)` => Promise({ source, lineNumber, columnNumber })
+Returns the surrounding source code chunk (with the start position) for where the stackframe points.
 * **stackframe** - [StackFrame](https://github.com/stacktracejs/stackframe) or like object
 
 ## Browser Support
