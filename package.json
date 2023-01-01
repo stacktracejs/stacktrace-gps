@@ -43,8 +43,8 @@
     "karma-spec-reporter": "^0.0.34",
     "run-sequence": "^1.2.2",
     "uglify-es": "^3.3.9",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "bugs": {
     "url": "https://github.com/stacktracejs/stacktrace-gps/issues"
